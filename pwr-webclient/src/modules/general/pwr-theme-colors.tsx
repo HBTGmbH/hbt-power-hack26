@@ -5,6 +5,8 @@ import {PWR_ACCENT} from '../../PowerTheme';
 const useStyles = makeStyles(theme => ({
     '@global': {
         ':root': {
+            '--pwr-primary': theme.palette.primary.main,
+            '--pwr-secondary': theme.palette.secondary.main,
             '--pwr-error': theme.palette.error.main,
             '--pwr-warning': theme.palette.warning.main,
             '--pwr-accent': PWR_ACCENT,
@@ -13,7 +15,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 /**
- * Publishes the error, warning and accent colour of the theme as CSS variables (--pwr-error, --pwr-warning,
+ * Publishes the primary, secondary, error, warning and accent colour of the theme as CSS variables (--pwr-error, --pwr-warning,
  * --pwr-accent); rendered once inside the theme provider
  */
 export const PwrThemeColors = () => {

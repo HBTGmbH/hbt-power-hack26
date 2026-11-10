@@ -9,15 +9,15 @@ const newPowerTheme: ThemeOptions = {
     },
     palette: {
         primary: {
-            light: '#474b77',
-            main: '#191E55',
-            dark: '#11153b',
+            light: '#BC477B',
+            main: '#880E4F',
+            dark: '#560027',
             contrastText: '#fff',
         },
         secondary: {
-            light: '#6bebeb',
-            main: '#46E6E6',
-            dark: '#31a1a1',
+            light: '#FFEEFF',
+            main: '#F8BBD0',
+            dark: '#C48B9F',
         },
         // Errors and destructive actions in red (#201): 7.3:1 on white, 6.0:1 on the grey of the fields, white
         // text on it 7.3:1. Not the HBT orange, which reaches only 2.3:1 (see PWR_ACCENT).
@@ -79,14 +79,14 @@ const newPowerTheme: ThemeOptions = {
         MuiTabs: {
             root: {
                 color: '#fff',
-                indicatorColor: '#46E6E6',
-                backgroundColor: '#191E55'
+                indicatorColor: '#F8BBD0',
+                backgroundColor: '#880E4F'
             }
         },
         MuiTab: {
             root: {
                 '&$selected': {
-                    color: '#46E6E6'
+                    color: '#F8BBD0'
                 }
             }
 
