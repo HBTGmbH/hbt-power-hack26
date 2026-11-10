@@ -1,0 +1,23 @@
+{
+  "level": "company",
+  "id": "hbt",
+  "label": "HBT",
+  "adrPrefix": "HBT",
+  "sources": [
+    {
+      "glob": "**/*.md"
+    }
+  ],
+  "exclude": [
+    "**/.git/**",
+    "**/node_modules/**",
+    "README.md",
+    "_vorlagen/**"
+  ],
+  "glossaries": [
+    "glossar.md",
+    "**/*glossar*.md"
+  ],
+  "sensitiveTerms": [],
+  "module": "hbt"
+}

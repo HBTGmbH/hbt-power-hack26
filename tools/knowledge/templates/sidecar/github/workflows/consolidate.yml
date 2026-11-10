@@ -1,0 +1,395 @@
+# Wöchentliche Konsolidierung von Code und Wissen – ein Lauf je Projekt.
+#
+# Läuft bewusst im PRIVATEN Projekt-Sidecar: Der Agent liest internes Wissen, und Actions-Logs eines
+# öffentlichen Repositorys wären öffentlich. Ergebnis ist ein PR hier im Sidecar mit dem vollen Bericht und,
+# erst nach Freigabe durch einen Menschen, ein PR im öffentlichen Projekt (Job public-pr).
+#
+# Sicherheit: Werkzeug, Prompt, Hooks und MCP-Server kommen aus einer GEPINNTEN Version des Werkzeug-Repos
+# (vars.KB_TOOL_REPO @ vars.KB_TOOL_REF, voller Commit-SHA), nie aus dem öffentlichen Projekt-Checkout.
+# Claude läuft ohne die Einstellungen, Hooks und MCP-Server des Projekts. Das Projekt ist nur Arbeitsmaterial.
+# Die Leak-Prüfung erkennt nur wörtliche Übernahmen. Ein Branch im öffentlichen Projekt ist schon öffentlich,
+# deshalb wartet der Job public-pr auf die Freigabe im Environment „public-pr“: Der Prüfer liest vorher die
+# Änderungen (Artefakt public.patch, Sidecar-PR) auf Umschreibungen internen Wissens.
+# Der Job public-pr checkt das Projekt frisch aus und wendet nur den Patch an: Was der Agent in .git schreibt
+# (Hooks, Konfiguration), erreicht den Commit mit dem Projekt-Token nicht.
+#
+# Einrichtung (Settings → Environments): Environment „public-pr“ mit „Required reviewers“ anlegen und
+# PROJECT_TOKEN dort als Environment-Secret hinterlegen, nicht als Repository-Secret.
+#
+# Einrichtung (Settings → Secrets and variables → Actions):
+#   vars.PROJECT_REPO          owner/name des öffentlichen Projekts, z. B. HBTGmbH/hbt-power
+#   vars.KB_TOOL_REPO          owner/name des Werkzeug-Repos (später die zentrale Werkzeugverteilung)
+#   vars.KB_TOOL_REF           voller Commit-SHA (40 Zeichen) der freigegebenen Werkzeug-Version
+#   vars.KB_TOOL_PATH          Ordner des Werkzeugs im Werkzeug-Repo, Standard tools/knowledge
+#   secrets.PROJECT_TOKEN      Fine-grained PAT oder App-Token nur für PROJECT_REPO, als Secret des
+#                              Environments „public-pr“: Contents, Pull requests, Issues: read and write
+#   secrets.PROJECT_READ_TOKEN nur lesen (Contents, Issues, Pull requests) für PROJECT_REPO; entfällt, wenn
+#                              das Projekt öffentlich ist (dann reicht github.token zum Lesen)
+#   secrets.ANTHROPIC_API_KEY  oder secrets.CLAUDE_CODE_OAUTH_TOKEN (claude setup-token)
+#   optional vars.COMPANY_KNOWLEDGE_REPO + secrets.COMPANY_KNOWLEDGE_TOKEN (nur lesen): HBT-weites Wissen
+#   optional secrets.KB_TOOL_TOKEN (nur lesen), falls das Werkzeug-Repo privat ist
+#   optional vars.JIRA_URL + secrets.JIRA_TOKEN (+ secrets.JIRA_USER bei Jira Cloud): Jira des Projekts, nur lesen;
+#            die Projektschlüssel stehen in knowledge.json dieses Sidecars ("jira": {"keys": ["PWR"]})
+#   optional vars.CLAUDE_MODEL, vars.CLAUDE_CODE_VERSION, vars.ISSUE_TYPE_ID (GraphQL-Id des Issue-Typs „Task“),
+#            vars.PROJECT_ISSUE = false (dann Commit „#noissue - …“ ohne Issue)
+#   Settings → Actions → General: „Allow GitHub Actions to create and approve pull requests“
+
+name: Wissen konsolidieren
+
+on:
+  schedule:
+    - cron: '17 1 * * 0' # sonntags 02:17 MEZ / 03:17 MESZ
+  workflow_dispatch:
+    inputs:
+      since:
+        description: 'Zeitraum überschreiben: Commit oder Datum (leer = seit letztem Lauf, sonst 8 Tage)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Nur Bericht als Artefakt, keine PRs'
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: consolidate-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      week: ${{ steps.inputs.outputs.week }}
+      base: ${{ steps.inputs.outputs.base }}
+      changed: ${{ steps.check.outputs.changed }}
+      ok: ${{ steps.check.outputs.ok }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      PROJECT_REPO: ${{ vars.PROJECT_REPO }}
+      PROJECT_DIR: ${{ github.workspace }}/project
+      TOOL_DIR: ${{ github.workspace }}/kb-tool/${{ vars.KB_TOOL_PATH || 'tools/knowledge' }}
+      KB_PRIVATE_DIR: ${{ github.workspace }}/knowledge
+      COMPANY_DIR: ${{ github.workspace }}/company
+      KB_DISCOVER: '0'
+      RUN_DIR: ${{ github.workspace }}/knowledge/.kb-run
+      DRY_RUN: ${{ inputs.dry_run || false }}
+      # Jira des Projekts (optional, nur lesen): Projektschlüssel stehen in knowledge.json dieses Sidecars
+      JIRA_URL: ${{ vars.JIRA_URL }}
+      JIRA_USER: ${{ secrets.JIRA_USER }}
+      JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+      BOT_NAME: kb-consolidate[bot]
+      BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+    steps:
+      - name: Werkzeug-Version prüfen
+        env:
+          KB_TOOL_REPO: ${{ vars.KB_TOOL_REPO }}
+          KB_TOOL_REF: ${{ vars.KB_TOOL_REF }}
+        run: |
+          [ -n "$KB_TOOL_REPO" ] || { echo "::error::vars.KB_TOOL_REPO fehlt"; exit 1; }
+          [[ "$KB_TOOL_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::vars.KB_TOOL_REF muss ein voller Commit-SHA sein (kein Branch, kein Tag)"; exit 1; }
+
+      - name: Werkzeug auschecken (gepinnt)
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.KB_TOOL_REPO }}
+          ref: ${{ vars.KB_TOOL_REF }}
+          token: ${{ secrets.KB_TOOL_TOKEN || github.token }}
+          path: kb-tool
+          persist-credentials: false
+
+      - name: Sidecar auschecken
+        uses: actions/checkout@v7
+        with:
+          path: knowledge
+          persist-credentials: false
+
+      - name: HBT-weites Wissen auschecken (nur lesen)
+        if: vars.COMPANY_KNOWLEDGE_REPO != ''
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.COMPANY_KNOWLEDGE_REPO }}
+          token: ${{ secrets.COMPANY_KNOWLEDGE_TOKEN }}
+          path: company
+          persist-credentials: false
+
+      - name: Projekt auschecken
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.PROJECT_REPO }}
+          token: ${{ secrets.PROJECT_READ_TOKEN || github.token }}
+          path: project
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      - name: Werkzeug bereitstellen
+        run: |
+          test -f "$TOOL_DIR/kb.mjs" || { echo "::error::kb.mjs fehlt in $TOOL_DIR"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/bin" "$RUN_DIR"
+          printf '#!/bin/sh\nexec node "%s/kb.mjs" --root "%s" "$@"\n' "$TOOL_DIR" "$PROJECT_DIR" > "$RUNNER_TEMP/bin/kb"
+          chmod +x "$RUNNER_TEMP/bin/kb"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          if [ -d "$COMPANY_DIR" ]; then echo "KB_SOURCES=$COMPANY_DIR" >> "$GITHUB_ENV"; fi
+          # Jira-Texte, die kb liest, sammeln: sie zählen bei der Leak-Prüfung als intern (check --extra)
+          echo "KB_JIRA_LOG=$RUN_DIR/jira.md" >> "$GITHUB_ENV"
+          # Git-Konfiguration vor dem Agenten sichern: Was er in .git schreibt (Hooks, fsmonitor, Filter), läuft sonst bei git add/commit
+          for d in project knowledge company kb-tool; do
+            [ -f "$GITHUB_WORKSPACE/$d/.git/config" ] && cp "$GITHUB_WORKSPACE/$d/.git/config" "$RUNNER_TEMP/git-config-$d"
+          done
+          true
+
+      - name: Eingaben sammeln
+        id: inputs
+        working-directory: project
+        env:
+          SINCE: ${{ inputs.since }}
+        run: |
+          kb status
+          kb report ${SINCE:+--since "$SINCE"} --out "$RUN_DIR/report.md"
+          commits=$(kb changes ${SINCE:+--since "$SINCE"} --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).commits.length))')
+          findings=$(kb audit --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).length))')
+          {
+            echo "base=$(git rev-parse HEAD)"
+            echo "week=$(date +%G-KW%V)"
+            echo "work=$([ "$commits" -gt 0 ] || [ "$findings" -gt 0 ] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+          echo "### Eingaben: $commits Commits, $findings Auffälligkeiten" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Claude Code installieren
+        if: steps.inputs.outputs.work == 'true'
+        env:
+          CLAUDE_CODE_VERSION: ${{ vars.CLAUDE_CODE_VERSION || 'latest' }}
+        run: npm install -g "@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION" # zizmor: ignore[adhoc-packages] CLI ohne Lockfile; Version über vars.CLAUDE_CODE_VERSION festlegbar
+
+      - name: Konsolidieren
+        if: steps.inputs.outputs.work == 'true'
+        working-directory: project
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_READ_TOKEN || github.token }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          WEEK: ${{ steps.inputs.outputs.week }}
+        run: |
+          [ -n "$ANTHROPIC_API_KEY" ] || unset ANTHROPIC_API_KEY
+          [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ] || unset CLAUDE_CODE_OAUTH_TOKEN
+          # Hooks und MCP-Server aus dem gepinnten Werkzeug, nicht aus dem Projekt
+          node - "$TOOL_DIR/kb.mjs" "$PROJECT_DIR" "$RUN_DIR" <<'EOF'
+          const [kb, root, out] = process.argv.slice(2);
+          const fs = require('fs');
+          const hook = (a) => [{ hooks: [{ type: 'command', command: `node "${kb}" --root "${root}" hook ${a}`, timeout: 30 }] }];
+          fs.writeFileSync(`${out}/settings.json`, JSON.stringify({ hooks: {
+            SessionStart: hook('session'), UserPromptSubmit: hook('prompt'),
+            PreToolUse: [{ matcher: 'Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit', hooks: hook('guard')[0].hooks }],
+          } }, null, 2));
+          fs.writeFileSync(`${out}/mcp.json`, JSON.stringify({ mcpServers: { knowledge: { command: 'node', args: [kb, 'mcp', '--root', root] } } }, null, 2));
+          EOF
+          {
+            cat "$TOOL_DIR/consolidate/PROMPT.md"
+            echo
+            echo "## Kontext dieses Laufs"
+            echo
+            echo "- Projekt (Arbeitsverzeichnis): $PROJECT_DIR, Repository $PROJECT_REPO"
+            echo "- Projekt-Sidecar: $KB_PRIVATE_DIR"
+            if [ -d "$COMPANY_DIR" ]; then echo "- HBT-weites Wissen (nur lesen): $COMPANY_DIR"; else echo "- HBT-weites Wissen: nicht eingebunden"; fi
+            echo "- Werkzeug: Befehl \`kb\`, README unter $TOOL_DIR/README.md"
+            echo "- Bericht: $RUN_DIR/report.md"
+            echo "- Ausgabeverzeichnis: $RUN_DIR"
+            echo "- Heute: $(date +%F), Kalenderwoche $WEEK"
+          } > "$RUN_DIR/prompt.md"
+          dirs=(--add-dir "$KB_PRIVATE_DIR" --add-dir "$TOOL_DIR")
+          if [ -d "$COMPANY_DIR" ]; then dirs+=(--add-dir "$COMPANY_DIR"); fi
+          claude -p "$(cat "$RUN_DIR/prompt.md")" \
+            "${dirs[@]}" \
+            --setting-sources user \
+            --settings "$RUN_DIR/settings.json" \
+            --mcp-config "$RUN_DIR/mcp.json" --strict-mcp-config \
+            --permission-mode acceptEdits \
+            --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,mcp__knowledge,Bash(kb:*),Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git grep:*),Bash(git blame:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh issue view:*),Bash(gh issue list:*)" \
+            --disallowedTools "Bash(node:*),Bash(git commit:*),Bash(git push:*),Bash(gh pr create:*),Bash(gh issue create:*),WebFetch,WebSearch" \
+            --max-turns 150 \
+            ${CLAUDE_MODEL:+--model "$CLAUDE_MODEL"} \
+            --output-format text | tee "$RUN_DIR/claude.log"
+
+      - name: HBT-weites Wissen und Werkzeug unverändert lassen
+        if: always()
+        run: |
+          # Git-Konfiguration wiederherstellen, Hooks entfernen (der Agent darf in diese Ordner schreiben)
+          for d in project knowledge company kb-tool; do
+            g="$GITHUB_WORKSPACE/$d/.git"
+            [ -d "$g" ] || continue
+            [ -f "$RUNNER_TEMP/git-config-$d" ] && cp "$RUNNER_TEMP/git-config-$d" "$g/config"
+            rm -rf "$g/hooks" "$g/info/attributes"
+          done
+          for d in "$COMPANY_DIR" "$GITHUB_WORKSPACE/kb-tool"; do
+            [ -d "$d/.git" ] || continue
+            if [ -n "$(git -C "$d" status --porcelain)" ]; then
+              echo "::warning::Änderungen in $(basename "$d") verworfen (nur lesen)"
+              git -C "$d" status --porcelain > "$RUN_DIR/verworfen-$(basename "$d").txt"
+              git -C "$d" reset -q --hard && git -C "$d" clean -qfd
+            fi
+          done
+
+      - name: Leak- und Umfangsprüfung
+        id: check
+        working-directory: project
+        run: |
+          git -c core.hooksPath=/dev/null add -A
+          reasons=()
+          kb check --staged --extra "$RUN_DIR/jira.md" > "$RUN_DIR/check.txt" || reasons+=("Leak-Prüfung der Änderungen schlug an")
+          if [ -f "$RUN_DIR/public-pr.md" ]; then
+            kb scan "$RUN_DIR/public-pr.md" --extra "$RUN_DIR/jira.md" >> "$RUN_DIR/check.txt" || reasons+=("Leak-Prüfung der PR-Beschreibung schlug an")
+          fi
+          # Der Lauf ändert im Projekt nur Markdown und knowledge.json; Code (auch Kommentare) bleibt unberührt,
+          # Hinweise dazu stehen in consolidation/hints.md im Sidecar
+          not_markdown=$(git diff --cached --name-only | { grep -vE '\.md$|^knowledge\.json$' || true; })
+          [ -z "$not_markdown" ] || reasons+=("Dateien außer Markdown geändert: $(echo "$not_markdown" | tr '\n' ' ')")
+          total=$(git diff --cached --name-only | wc -l)
+          [ "$total" -le 40 ] || reasons+=("$total Dateien geändert, erlaubt sind 40")
+          if git diff --cached --quiet; then changed=false; else changed=true; fi
+          git diff --cached --binary > "$RUN_DIR/public.patch"
+          {
+            echo "changed=$changed"
+            echo "ok=$([ ${#reasons[@]} -eq 0 ] && echo true || echo false)"
+            echo "reasons=${reasons[*]}"
+          } >> "$GITHUB_OUTPUT"
+          git diff --cached --stat > "$RUN_DIR/public-diff.txt"
+
+      - name: PR im Sidecar
+        if: env.DRY_RUN != 'true'
+        working-directory: knowledge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEEK: ${{ steps.inputs.outputs.week }}
+          BASE: ${{ steps.inputs.outputs.base }}
+          WORK: ${{ steps.inputs.outputs.work }}
+          CHANGED: ${{ steps.check.outputs.changed }}
+          OK: ${{ steps.check.outputs.ok }}
+          REASONS: ${{ steps.check.outputs.reasons }}
+        run: |
+          if [ "$WORK" != "true" ]; then public="Nichts zu tun: keine Commits, keine Auffälligkeiten."
+          elif [ "$CHANGED" != "true" ]; then public="Keine Änderungen im Projekt."
+          elif [ "$OK" != "true" ]; then public="**Kein PR im Projekt angelegt:** $REASONS. Die Änderungen liegen im Artefakt dieses Laufs (public.patch, public-diff.txt, check.txt). Der Stand bleibt stehen, der nächste Lauf nimmt dieselben Commits wieder auf."
+          else public="Die Änderungen im Projekt warten auf Freigabe (Environment public-pr, Job public-pr): erst die Änderungen im Artefakt (public.patch) auf Umschreibungen internen Wissens prüfen, dann freigeben."
+          fi
+          # Den Stand nur weiterschieben, wenn nichts Geprüftes liegen bleibt: ein blockierter Lauf wird wiederholt
+          if [ "$CHANGED" != "true" ] || [ "$OK" = "true" ]; then kb state --set "$BASE" > /dev/null; fi
+          git -c core.hooksPath=/dev/null add -A
+          if git diff --cached --quiet; then echo "Nichts zu committen."; echo "$public" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          others=$(git diff --cached --name-only | { grep -v '^consolidation/state\.json$' || true; })
+          if [ -n "$others" ]; then
+            branch="kb/konsolidierung-${WEEK,,}"
+            git switch -c "$branch"
+            git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "Konsolidierung $WEEK"
+            git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+            {
+              echo "$public"
+              echo
+              cat "$RUN_DIR/sidecar-pr.md" 2>/dev/null || echo "(Der Agent hat keinen Bericht geschrieben.)"
+              echo
+              for f in "$RUN_DIR"/verworfen-*.txt; do [ -f "$f" ] && { echo "**Verworfene Änderungen ($(basename "$f" .txt)):**"; echo '```'; cat "$f"; echo '```'; }; done
+              echo "<details><summary>Eingaben des Laufs</summary>"
+              echo
+              cat "$RUN_DIR/report.md"
+              echo
+              echo "</details>"
+            } > "$RUN_DIR/sidecar-pr-body.md"
+            gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" --title "Konsolidierung $WEEK" --body-file "$RUN_DIR/sidecar-pr-body.md"
+          else
+            # nur der Stand des Laufs: direkt, damit der nächste Lauf dort weitermacht
+            git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "Konsolidierung $WEEK: Stand gemerkt"
+            git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}" || echo "::warning::Stand nicht gespeichert (Branch geschützt?). Der nächste Lauf nimmt die letzten 8 Tage."
+          fi
+          echo "$public" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: konsolidierung-${{ steps.inputs.outputs.week }}
+          path: knowledge/.kb-run/
+          retention-days: 14
+          include-hidden-files: true
+
+  # Erst nach Freigabe durch einen Menschen: Ein Branch im öffentlichen Projekt ist schon öffentlich, und die
+  # Leak-Prüfung erkennt keine Umschreibungen. Das Projekt wird frisch ausgecheckt und bekommt nur den geprüften
+  # Patch; was der Agent in .git geschrieben hat, gibt es hier nicht.
+  public-pr:
+    needs: consolidate
+    if: needs.consolidate.outputs.changed == 'true' && needs.consolidate.outputs.ok == 'true' && !inputs.dry_run
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: public-pr
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      PROJECT_REPO: ${{ vars.PROJECT_REPO }}
+      RUN_DIR: ${{ github.workspace }}/run
+      BOT_NAME: kb-consolidate[bot]
+      BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+    steps:
+      - name: Geprüfte Änderungen holen
+        uses: actions/download-artifact@v4
+        with:
+          name: konsolidierung-${{ needs.consolidate.outputs.week }}
+          path: run
+
+      - name: Projekt auschecken (Stand des Laufs)
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.PROJECT_REPO }}
+          ref: ${{ needs.consolidate.outputs.base }}
+          token: ${{ secrets.PROJECT_TOKEN }}
+          path: project
+          persist-credentials: false
+
+      - name: Issue, Branch und PR im Projekt
+        working-directory: project
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          WEEK: ${{ needs.consolidate.outputs.week }}
+          ISSUE_TYPE_ID: ${{ vars.ISSUE_TYPE_ID }}
+          PROJECT_ISSUE: ${{ vars.PROJECT_ISSUE || 'true' }}
+        run: |
+          git -c core.hooksPath=/dev/null apply --index "$RUN_DIR/public.patch"
+          title="Wissen und Doku mit dem Code abgleichen ($WEEK)"
+          if [ "$PROJECT_ISSUE" = "true" ]; then
+            body=$'**Ist-Zustand:** Doku (arc42, AGENTS.md, README, Glossar) kann seit dem letzten Abgleich vom Code abweichen.\n\n**Wunsch:** Der wöchentliche Lauf gleicht Doku und Code ab und hält neue Entscheidungen fest.\n\n**Akzeptanzkriterien:**\n- [ ] Überholte Aussagen sind aktualisiert, veraltete entfernt\n- [ ] Neue Entscheidungen sind als ADR festgehalten\n- [ ] `kb audit` meldet keine neuen Auffälligkeiten\n- [ ] Nur Markdown-Dateien und `knowledge.json` geändert'
+            url=$(gh issue create --repo "$PROJECT_REPO" --title "$title" --body "$body")
+            n=${url##*/}
+            if [ -n "$ISSUE_TYPE_ID" ]; then
+              node_id=$(gh api "repos/$PROJECT_REPO/issues/$n" --jq .node_id)
+              gh api graphql -f query="mutation { updateIssue(input: { id: \"$node_id\", issueTypeId: \"$ISSUE_TYPE_ID\" }) { issue { number } } }" > /dev/null
+            fi
+            ref="#$n"; branch="feature/$n-wissen-konsolidieren-${WEEK,,}"; closes="Closes #$n"
+          else
+            ref="#noissue"; branch="kb/wissen-konsolidieren-${WEEK,,}"; closes=""
+          fi
+          git switch -c "$branch"
+          git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "$ref - Wissen und Doku mit dem Code abgeglichen ($WEEK)"
+          git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${PROJECT_REPO}.git" "$branch"
+          {
+            # public-pr.md wurde im Job consolidate geprüft (kb scan); hier kommen nur feste Zeilen dazu
+            cat "$RUN_DIR/public-pr.md" 2>/dev/null || echo "Wöchentlicher Abgleich von Doku und Code."
+            echo
+            echo "---"
+            echo "Automatisch erstellt vom wöchentlichen Konsolidierungslauf, freigegeben im Environment public-pr. Bitte inhaltlich prüfen."
+            [ -n "$closes" ] && { echo; echo "$closes"; }
+            echo
+            echo "Reviewed AGENTS.md; changes comply with architecture and security guidelines."
+          } > "$RUNNER_TEMP/public-pr-body.md"
+          pr=$(gh pr create --repo "$PROJECT_REPO" --base "$(gh repo view "$PROJECT_REPO" --json defaultBranchRef --jq .defaultBranchRef.name)" --head "$branch" --title "$ref - Wissen und Doku mit dem Code abgeglichen ($WEEK)" --body-file "$RUNNER_TEMP/public-pr-body.md")
+          echo "PR im Projekt: $pr" >> "$GITHUB_STEP_SUMMARY"

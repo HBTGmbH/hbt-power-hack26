@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "knowledge": {
+      "command": "node",
+      "args": [
+        "tools/knowledge/kb.mjs",
+        "mcp"
+      ]
+    }
+  }
+}

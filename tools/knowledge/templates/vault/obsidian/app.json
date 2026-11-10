@@ -1,0 +1,7 @@
+{
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest",
+  "alwaysUpdateLinks": true,
+  "propertiesInDocument": "visible",
+  "userIgnoreFilters": ["_vorlagen/", "consolidation/", ".kb-run/"]
+}

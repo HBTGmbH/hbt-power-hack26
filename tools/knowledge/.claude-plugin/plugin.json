@@ -1,0 +1,7 @@
+{
+  "name": "knowledge",
+  "version": "0.3.0",
+  "description": "Wissensbasis für Projekte: öffentliche Doku, Projekt-Sidecar und HBT-weites Wissen in einer Suche; Domänensprache, Entscheidungsregister, Leak-Schutz und wöchentliche Konsolidierung.",
+  "author": { "name": "HBT" },
+  "keywords": ["knowledge", "glossary", "adr", "documentation"]
+}

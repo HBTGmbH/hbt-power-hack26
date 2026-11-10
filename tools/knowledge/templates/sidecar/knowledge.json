@@ -1,0 +1,22 @@
+{
+  "level": "project",
+  "sources": [
+    {
+      "glob": "**/*.md"
+    }
+  ],
+  "exclude": [
+    "**/.git/**",
+    "**/node_modules/**",
+    "README.md",
+    "_vorlagen/**"
+  ],
+  "glossaries": [
+    "glossar.md",
+    "**/*glossar*.md"
+  ],
+  "sensitiveTerms": [],
+  "jira": {
+    "keys": []
+  }
+}

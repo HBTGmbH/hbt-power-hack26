@@ -1,0 +1,7 @@
+# zizmor: Aktionen von GitHub per Tag, alle anderen per Commit-Hash (wie im Projekt-Repository).
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "actions/*": ref-pin
+        "*": hash-pin

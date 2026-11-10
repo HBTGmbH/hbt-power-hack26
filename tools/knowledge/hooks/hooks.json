@@ -1,0 +1,17 @@
+{
+  "description": "Wissensbasis: Inhaltsverzeichnis, Domänensprache und Entscheidungen beim Start, passende Abschnitte zu jeder Frage, Leak-Schutz vor Schreibzugriffen und Commits.",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/kb.mjs\" hook session", "timeout": 15 }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/kb.mjs\" hook prompt", "timeout": 15 }] }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/kb.mjs\" hook guard", "timeout": 15 }]
+      }
+    ]
+  }
+}
