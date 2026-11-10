@@ -258,7 +258,13 @@ jobs:
           [ "$total" -le 40 ] || reasons+=("$total Dateien geändert, erlaubt sind 40")
           if git diff --cached --quiet; then changed=false; else changed=true; fi
           git diff --cached --binary > "$RUN_DIR/public.patch"
+          # Die Hinweise zum Code landen später in öffentlichem Code; der lokale Hook kennt keine Jira-Texte
+          hints_ok=true
+          if [ -f "$KB_PRIVATE_DIR/consolidation/hints.md" ]; then
+            kb scan "$KB_PRIVATE_DIR/consolidation/hints.md" --extra "$RUN_DIR/jira.md" > "$RUN_DIR/check-hints.txt" || hints_ok=false
+          fi
           {
+            echo "hints_ok=$hints_ok"
             echo "changed=$changed"
             echo "ok=$([ ${#reasons[@]} -eq 0 ] && echo true || echo false)"
             echo "reasons=${reasons[*]}"
@@ -276,7 +282,13 @@ jobs:
           CHANGED: ${{ steps.check.outputs.changed }}
           OK: ${{ steps.check.outputs.ok }}
           REASONS: ${{ steps.check.outputs.reasons }}
+          HINTS_OK: ${{ steps.check.outputs.hints_ok }}
         run: |
+          if [ "$HINTS_OK" = "false" ]; then
+            warn="> [!WARNING]"$'\n'"> **Die Hinweise zum Code enthalten interne Inhalte** (Fund in check-hints.txt im Artefakt). Sie landen später in öffentlichem Code: vor dem Merge aus consolidation/hints.md entfernen oder umformulieren."$'\n\n'
+            echo "::warning::Leak-Prüfung von consolidation/hints.md schlug an"
+          else warn=""
+          fi
           if [ "$WORK" != "true" ]; then public="Nichts zu tun: keine Commits, keine Auffälligkeiten."
           elif [ "$CHANGED" != "true" ]; then public="Keine Änderungen im Projekt."
           elif [ "$OK" != "true" ]; then public="**Kein PR im Projekt angelegt:** $REASONS. Die Änderungen liegen im Artefakt dieses Laufs (public.patch, public-diff.txt, check.txt). Der Stand bleibt stehen, der nächste Lauf nimmt dieselben Commits wieder auf."
@@ -285,7 +297,7 @@ jobs:
           # Den Stand nur weiterschieben, wenn nichts Geprüftes liegen bleibt: ein blockierter Lauf wird wiederholt
           if [ "$CHANGED" != "true" ] || [ "$OK" = "true" ]; then kb state --set "$BASE" > /dev/null; fi
           git -c core.hooksPath=/dev/null add -A
-          if git diff --cached --quiet; then echo "Nichts zu committen."; echo "$public" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          if git diff --cached --quiet; then echo "Nichts zu committen."; printf '%s%s\n' "$warn" "$public" >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
           others=$(git diff --cached --name-only | { grep -v '^consolidation/state\.json$' || true; })
           if [ -n "$others" ]; then
             branch="kb/konsolidierung-${WEEK,,}"
@@ -293,6 +305,7 @@ jobs:
             git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "Konsolidierung $WEEK"
             git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
             {
+              printf '%s' "$warn"
               echo "$public"
               echo
               cat "$RUN_DIR/sidecar-pr.md" 2>/dev/null || echo "(Der Agent hat keinen Bericht geschrieben.)"
@@ -310,7 +323,7 @@ jobs:
             git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "Konsolidierung $WEEK: Stand gemerkt"
             git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}" || echo "::warning::Stand nicht gespeichert (Branch geschützt?). Der nächste Lauf nimmt die letzten 8 Tage."
           fi
-          echo "$public" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s%s\n' "$warn" "$public" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Artefakt
         if: always()

@@ -304,7 +304,7 @@ Der Lauf ist auf vier Bausteine verteilt:
 - **Agent:** Claude Code arbeitet nach [`consolidate/PROMPT.md`](consolidate/PROMPT.md).
   - Er liest jeden Commit mit Issue und PR und ordnet ihn ein: ADR, arc42-Kapitel, Glossar oder Sidecar.
   - Er prüft die gemeldeten Seiten am Code und schreibt eine Chronik der Woche für Wirtschaft und Fachlichkeit (`chronik/<JJJJ>-KW<nn>.md` im Sidecar).
-  - Im Projekt ändert er nur Markdown-Dateien und `knowledge.json`. Code fasst er nie an, auch keine Kommentare und Oberflächentexte. Was dort nicht stimmt, schreibt er als **Hinweis zum Code** in den Projekt-Sidecar (`consolidation/hints.md`: Datei und Zeile, was falsch ist, Vorschlag), ohne interne Inhalte, denn die Hinweise landen später in öffentlichem Code. Er ersetzt die Datei bei jedem Lauf als Ganzes.
+  - Im Projekt ändert er nur Markdown-Dateien und `knowledge.json`. Code fasst er nie an, auch keine Kommentare und Oberflächentexte. Was dort nicht stimmt, schreibt er als **Hinweis zum Code** in den Projekt-Sidecar (`consolidation/hints.md`: Datei und Zeile, was falsch ist, Vorschlag), ohne interne Inhalte, denn die Hinweise landen später in öffentlichem Code. Er ersetzt die Datei bei jedem Lauf als Ganzes. Der Workflow prüft sie gegen Sidecar und Jira-Texte (`kb scan … --extra`); ein Fund steht als Warnung oben im Sidecar-PR.
   - `kb status` und der Session-Kontext zeigen die offenen Hinweise. Wer in dem Bereich arbeitet, behebt den Kommentar im selben Branch als kleine Korrektur nebenbei (Regel „Small fixes along the way“ in `AGENTS.md`) und löscht den Hinweis aus der Datei im Sidecar.
   - Was er nicht belegen kann, schreibt er unter „Offene Punkte“.
   - Er darf weder committen noch PRs anlegen.

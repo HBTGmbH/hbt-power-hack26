@@ -785,4 +785,7 @@ test('weekly run template rejects every changed file except Markdown and knowled
   execFileSync('git', ['mv', 'Foo.java', 'Foo.md'], { cwd: repo });
   const names = execFileSync('git', gitArgs, { cwd: repo, encoding: 'utf8' }).trim().split('\n');
   assert.equal(probe(names), 'Foo.java');
+  // the hints go into public code later: the run checks them against the sidecar and Jira, and the sidecar PR warns
+  assert.match(yml, /kb scan "\$KB_PRIVATE_DIR\/consolidation\/hints\.md" --extra "\$RUN_DIR\/jira\.md"/);
+  assert.match(yml, /printf '%s' "\$warn"/);
 });
