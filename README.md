@@ -172,6 +172,28 @@ Reset MariaDB and Redis to an empty state (deletes all local data):
 podman compose down -v
 ```
 
+## Knowledge base
+
+The project knowledge (this README, `AGENTS.md`, arc42, the glossary in [`docs/glossar/`](docs/glossar/)) is searchable
+through [`tools/knowledge`](tools/knowledge/README.md), a Node script without dependencies (decisions
+[ADR-26 and ADR-27](docs/arc42/09-architekturentscheidungen.md#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar)).
+Nothing to install: Claude Code picks it up from `.claude/settings.json` (hooks at session start, on every prompt and before
+writes, commits and pushes) and `.mcp.json` (MCP server `knowledge`).
+
+```shell
+node tools/knowledge/kb.mjs status                 # what is loaded
+node tools/knowledge/kb.mjs search "<question>"
+node tools/knowledge/kb.mjs define Profilauszug    # term of the domain language
+node tools/knowledge/kb.mjs audit                  # replaced words, incomplete ADRs, dead links
+node tools/knowledge/kb.mjs check --staged         # no private content in the next commit
+node --test tools/knowledge/test/*.test.mjs
+```
+
+Project members may add a private knowledge source; without one the tool works with the public docs only. How to set one
+up, the leak protection and the weekly run that keeps docs and code aligned are in
+[`tools/knowledge/README.md`](tools/knowledge/README.md). The rules for working with it are in
+[`AGENTS.md`](AGENTS.md#knowledge-base).
+
 ## Known issues
 
 - **Report service hangs on start with no output when run from IntelliJ:** a JDK 13 startup deadlock between IntelliJ attaching to the JVM and the signed BIRT jars.

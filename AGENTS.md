@@ -27,6 +27,8 @@ npm --prefix pwr-webclient run build
 
 There are no webclient tests at the moment.
 
+Knowledge base tool (`tools/knowledge`, Node without dependencies, see [Knowledge base](#knowledge-base)): `node --test tools/knowledge/test/*.test.mjs`. A test that needs bash passes its script on stdin (`bash -s`), since on Windows `bash` may be WSL's, which re-parses `-c`.
+
 ## Local run
 
 `docker compose up -d` (or `podman compose` / `docker-compose`) starts MariaDB on host port **3307** (`skill`, `profile`, `report` DBs, root/`changeit`) and Redis on 6379 (password `changeit`) in their own `hbt-power` network. Port 3307 keeps it clear of other local MySQLs; the `localDev` JDBC URLs and the seed URLs in the POMs point there. Start services with the `localDev` Spring profile: IntelliJ run configs in `.run/` (`[localDev] Backend` starts all but the edge service), or from a terminal `./mvnw package -DskipTests` and then `java -jar target/<name>.jar --spring.profiles.active=localDev` from inside the service folder. Sample data: `./mvnw sql:execute` in profile/skill service, report template: `./mvnw exec:exec` in report service. Tables are created by Hibernate, so start the services once before seeding.
