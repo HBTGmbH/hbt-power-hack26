@@ -749,7 +749,7 @@ test('weekly run template rejects every changed file except Markdown and knowled
   const yml = fs.readFileSync(path.join(path.dirname(KB), 'templates/sidecar/github/workflows/consolidate.yml'), 'utf8');
   const line = yml.split('\n').find((l) => l.trim().startsWith('not_markdown=')).trim();
   const probe = (names) => {
-    const script = `${line.replace('git diff --cached --name-only', `printf '%s\\n' ${names.map((n) => `'${n}'`).join(' ')}`)}\nprintf '%s' "$not_markdown"`;
+    const script = `${line.replace(/git diff --cached --name-only[^|]*/, `printf '%s\\n' ${names.map((n) => `'${n}'`).join(' ')} `)}\nprintf '%s' "$not_markdown"`;
     // script on stdin, not `-c`: WSL's bash.exe (first `bash` on PATH in PowerShell) re-parses `-c` and expands `$not_markdown` early
     return execFileSync('bash', ['-s'], { input: script, encoding: 'utf8' });
   };
@@ -757,4 +757,12 @@ test('weekly run template rejects every changed file except Markdown and knowled
   assert.equal(probe(['docs/a.md', 'knowledge.json', 'pwr-x/README.md']), '');
   assert.equal(probe(['docs/a.md', 'pwr-x/src/Foo.java']), 'pwr-x/src/Foo.java');
   assert.equal(probe(['pwr-webclient/src/localization/de-DE.json', 'pom.xml']).split('\n').length, 2);
+  // the template's own git command, run in a repository: renaming code to Markdown still names the code file
+  const gitArgs = line.match(/git (diff --cached --name-only[^|]*)/)[1].trim().split(/\s+/);
+  const { repo } = fixture();
+  fs.writeFileSync(path.join(repo, 'Foo.java'), 'class Foo {}\n'.repeat(20));
+  gitCommit(repo, '#1 - code');
+  execFileSync('git', ['mv', 'Foo.java', 'Foo.md'], { cwd: repo });
+  const names = execFileSync('git', gitArgs, { cwd: repo, encoding: 'utf8' }).trim().split('\n');
+  assert.equal(probe(names), 'Foo.java');
 });

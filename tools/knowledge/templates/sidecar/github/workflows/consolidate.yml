@@ -252,9 +252,9 @@ jobs:
           fi
           # Der Lauf ändert im Projekt nur Markdown und knowledge.json; Code (auch Kommentare) bleibt unberührt,
           # Hinweise dazu stehen in consolidation/hints.md im Sidecar
-          not_markdown=$(git diff --cached --name-only | { grep -vE '\.md$|^knowledge\.json$' || true; })
+          not_markdown=$(git diff --cached --name-only --no-renames | { grep -vE '\.md$|^knowledge\.json$' || true; })
           [ -z "$not_markdown" ] || reasons+=("Dateien außer Markdown geändert: $(echo "$not_markdown" | tr '\n' ' ')")
-          total=$(git diff --cached --name-only | wc -l)
+          total=$(git diff --cached --name-only --no-renames | wc -l)
           [ "$total" -le 40 ] || reasons+=("$total Dateien geändert, erlaubt sind 40")
           if git diff --cached --quiet; then changed=false; else changed=true; fi
           git diff --cached --binary > "$RUN_DIR/public.patch"
