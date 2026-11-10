@@ -255,6 +255,7 @@ Der Befehl kopiert das Werkzeug. Dazu legt er `knowledge.json`, `.mcp.json`, die
 
 ```bash
 node tools/knowledge/kb.mjs init-sidecar ../<projekt>-knowledge     # Projekt-Sidecar, privates Repo des Projekts
+node tools/knowledge/kb.mjs init-sidecar ../<projekt>-knowledge --update   # nach einem Werkzeug-Update: Workflow im Sidecar erneuern
 node tools/knowledge/kb.mjs init-sidecar ../<firmenwissen> --company   # HBT-weites Wissen, einmal für alle
 node tools/knowledge/kb.mjs status
 ```
@@ -312,7 +313,7 @@ Der Lauf ist auf vier Bausteine verteilt:
 
 **Einrichten im Sidecar:**
 
-1. `init-sidecar` legt den Workflow mit an.
+1. `init-sidecar` legt den Workflow mit an. Nach einem Update des Werkzeugs bringt `init-sidecar <ordner> --update` ihn (alles unter `.github/`) auf den neuen Stand; Seiten, Glossar und `knowledge.json` bleiben, wie sie sind. `kb status` meldet einen veralteten Workflow.
 2. Variablen `KB_TOOL_REPO` und `KB_TOOL_REF` (freigegebener Commit des Werkzeugs) setzen; optional `COMPANY_KNOWLEDGE_REPO` mit Secret `COMPANY_KNOWLEDGE_TOKEN` (nur lesen) für das HBT-weite Wissen.
 3. Unter *Settings → Environments* das Environment `public-pr` mit *Required reviewers* anlegen. Dort als Environment-Secret `PROJECT_TOKEN` hinterlegen: ein Fine-grained Token nur für das Projekt, mit Lese- und Schreibrecht für Contents, Pull requests und Issues. So bekommt nur der freigegebene Job das Schreibrecht.
 4. Unter *Settings → Secrets and variables → Actions* folgendes setzen:

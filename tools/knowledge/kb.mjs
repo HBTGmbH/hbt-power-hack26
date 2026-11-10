@@ -1658,10 +1658,33 @@ export function init(target, { name, update = false } = {}) {
   return log;
 }
 
-export function initSidecar(dir, { company = false, project } = {}) {
+/**
+ * The files of the project sidecar that belong to the tool, not to its content: the weekly run (`.github/`).
+ * `--update` brings them to this version; pages, glossary and knowledge.json stay as they are.
+ */
+const SIDECAR_TOOL_DIR = path.join(HERE, 'templates', 'sidecar', 'github');
+
+/** Tool files of a project sidecar that differ from this version (line endings ignored), e.g. after a tool update. */
+export function staleSidecarFiles(dir) {
+  const out = [];
+  const walk = (src, rel) => {
+    for (const e of fs.readdirSync(src, { withFileTypes: true })) {
+      const s = path.join(src, e.name), r = `${rel}/${e.name}`;
+      if (e.isDirectory()) { walk(s, r); continue; }
+      const d = path.join(dir, r);
+      const norm = (f) => fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
+      if (fs.existsSync(d) && norm(d) !== norm(s)) out.push(r);
+    }
+  };
+  walk(SIDECAR_TOOL_DIR, '.github');
+  return out;
+}
+
+export function initSidecar(dir, { company = false, project, update = false } = {}) {
   const target = path.resolve(dir);
   fs.mkdirSync(target, { recursive: true });
   if (company) return copyDir(path.join(HERE, 'templates', 'company'), target);
+  if (update) return copyDir(SIDECAR_TOOL_DIR, path.join(target, '.github'), { overwrite: true });
   // the template keeps the workflow under github/ so it is not mistaken for this repository's own workflows
   const written = copyDir(path.join(HERE, 'templates', 'sidecar'), target, { rename: { github: '.github' } });
   const name = project || path.basename(target).replace(/-knowledge$/, '');
@@ -2302,6 +2325,9 @@ export function status(kb) {
   if (stale.length) lines.push(`Länger als 12 Monate nicht geprüft: ${stale.map((d) => `${d.id} (${d.reviewed})`).join(', ')}`);
   const noSummary = kb.docs.filter((d) => !d.summary);
   if (noSummary.length) lines.push(`Ohne Kurzfassung: ${noSummary.map((d) => d.id).join(', ')}`);
+  const projectSidecar = c.sources.find((s) => s.level === 'project');
+  const staleTool = projectSidecar ? staleSidecarFiles(projectSidecar.dir) : [];
+  if (staleTool.length) lines.push(`Workflow im Projekt-Sidecar veraltet (${staleTool.join(', ')}): node ${path.relative(c.root, path.join(HERE, 'kb.mjs'))} init-sidecar "${projectSidecar.dir}" --update`);
   const hints = readHints(kb);
   if (hints.length) lines.push('', `Offene Hinweise zum Code (${hints.length}, ${HINTS_FILE} im Projekt-Sidecar):`, formatHints(hints, Infinity), HINTS_RULE);
   return lines.join('\n');
@@ -2338,7 +2364,8 @@ const HELP = `Wissensbasis (kb) ${VERSION}
                              Projektschlüssel in knowledge.json "jira": {"keys": [...]}, Zugang über JIRA_URL, JIRA_USER, JIRA_TOKEN
   init [zielordner] [--name x] [--update]   in ein Repository einbauen (MCP, Hooks, Skill, AGENTS.md);
                              --update bringt nur das kopierte Werkzeug auf diese Version
-  init-sidecar <ordner> [--company] [--project name]   Gerüst für den Projekt-Sidecar bzw. das HBT-weite Wissen anlegen
+  init-sidecar <ordner> [--company] [--project name] [--update]   Gerüst für den Projekt-Sidecar bzw. das HBT-weite Wissen anlegen;
+                             --update bringt den Workflow des Projekt-Sidecars (.github/) auf diese Version, Inhalte bleiben
   vault <ordner> [--register] [--update]   modularen Obsidian-Vault anlegen (Einstellungen, Vorlagen, Anleitung);
                              --register trägt ihn in ~/.config/knowledge/sources.json ein
   version
@@ -2470,8 +2497,9 @@ export async function main(argv = process.argv.slice(2)) {
     case 'init': out(init(rest[0] || root, { name: opt.name, update: !!opt.update }).join('\n')); break;
     case 'init-sidecar': {
       if (!rest[0]) { out(HELP); process.exitCode = 2; break; }
-      const w = initSidecar(rest[0], { company: !!opt.company, project: typeof opt.project === 'string' ? opt.project : undefined });
-      out(w.length ? w.map((f) => `angelegt ${f}`).join('\n') : 'Nichts zu tun, alles vorhanden.');
+      const update = !!opt.update && !opt.company;
+      const w = initSidecar(rest[0], { company: !!opt.company, project: typeof opt.project === 'string' ? opt.project : undefined, update });
+      out(w.length ? w.map((f) => `${update ? 'aktualisiert' : 'angelegt'} ${f}`).join('\n') : (update ? 'Nichts zu tun, Workflow aktuell.' : 'Nichts zu tun, alles vorhanden.'));
       break;
     }
     case 'jira': {

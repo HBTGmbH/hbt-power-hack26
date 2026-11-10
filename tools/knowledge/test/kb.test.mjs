@@ -190,6 +190,26 @@ test('init-sidecar creates the skeleton with .github workflow', () => {
   assert.ok(!fs.existsSync(path.join(dir, 'github')));
 });
 
+test('init-sidecar --update brings the workflow to this version and leaves the content alone; status names a stale one', () => {
+  const { repo, side } = fixture();
+  kbm.initSidecar(side);
+  const wf = path.join(side, '.github/workflows/consolidate.yml');
+  const page = path.join(side, 'prozesse/angebot.md');
+  const own = fs.readFileSync(page, 'utf8');
+  assert.deepEqual(kbm.staleSidecarFiles(side), []);
+  fs.writeFileSync(wf, 'alt\n');
+  assert.deepEqual(kbm.staleSidecarFiles(side), ['.github/workflows/consolidate.yml']);
+  assert.match(kbm.status(kbm.loadKnowledge(repo)), /Workflow im Projekt-Sidecar veraltet \(\.github\/workflows\/consolidate\.yml\).*init-sidecar .*--update/);
+  const json = fs.readFileSync(path.join(side, 'knowledge.json'), 'utf8');
+  assert.deepEqual(kbm.initSidecar(side, { update: true }), [wf]);
+  assert.equal(fs.readFileSync(page, 'utf8'), own, 'pages stay');
+  assert.equal(fs.readFileSync(path.join(side, 'knowledge.json'), 'utf8'), json, 'knowledge.json stays');
+  assert.deepEqual(kbm.staleSidecarFiles(side), []);
+  assert.doesNotMatch(kbm.status(kbm.loadKnowledge(repo)), /veraltet/);
+  fs.writeFileSync(wf, fs.readFileSync(wf, 'utf8').replace(/\n/g, '\r\n'));
+  assert.deepEqual(kbm.staleSidecarFiles(side), [], 'CRLF from a Windows checkout is no difference');
+});
+
 test('MCP server: initialize, tools/list, tools/call, resources', async () => {
   const { repo } = fixture();
   const proc = spawn(process.execPath, [KB, 'mcp', '--root', repo], { stdio: ['pipe', 'pipe', 'inherit'], env: { ...process.env, CLAUDE_PROJECT_DIR: '' } });
