@@ -50,12 +50,12 @@ flowchart TB
 | **pwr-webclient** | nginx mit den statischen Dateien | `configure_api.sh` setzt beim Start die Service-URLs und die IDs der Anmeldung in `config.js` ein. |
 | **pwr-edge-service** | Tokenprüfung, Routing | Issuer und erlaubte Audiences (`PWR_SECURITY_JWT_AUDIENCES`, #324) kommen aus Umgebungsvariablen. Ohne Audience startet die Edge nicht. |
 | **Profile, Skill, Report** | Fachliche Services mit MariaDB | Zugangsdaten und `DB_HIBERNATE_DDL_AUTO=update` kommen aus Umgebungsvariablen ([ADR-08](09-architekturentscheidungen.md#adr-08-schema-mit-hibernate-ddl-auto-update-ohne-migrationswerkzeug)). |
-| **View-Profile, Statistics** | Fachliche Services mit Redis | Sie nutzen eine Redis-Instanz mit getrennten logischen Datenbanken. |
+| **View-Profile Service, Statistics** | Fachliche Services mit Redis | Sie nutzen eine Redis-Instanz mit getrennten logischen Datenbanken. |
 | **pwr-skill-service** | | Lucene-Index im Volume `lucene-data`, bei jedem Start neu aufgebaut |
 | **pwr-report-service** | | Hausschrift aus dem Verzeichnis `fonts` des Deploy-Repositorys, nur lesend unter `/fonts`. Die Dateien sind lizenziert und nicht eingecheckt (#82). |
 | **MariaDB** | Daten von Profile, Skill, Report | Version 11.8 (LTS) festgelegt; Upgrades innerhalb der Linie macht `MARIADB_AUTO_UPGRADE`. |
 | **DB-Backup** | täglicher Dump der MariaDB, 30 Stände | Auf demselben Host ([Kapitel 11](11-risiken-und-technische-schulden.md), O1). |
-| **Redis-Backup** | täglicher Dump des Redis mit den View-Profilen und Vorlagen-Metadaten (`redis-cli --rdb`), 30 Stände (#251) | Eine halbe Stunde nach dem DB-Backup, ebenfalls auf demselben Host. Die Wiederherstellung beschreibt `REDIS-BACKUP.md` im Deploy-Repository. Mit #52 kann es entfallen. |
+| **Redis-Backup** | täglicher Dump des Redis mit den Profilauszügen und Vorlagen-Metadaten (`redis-cli --rdb`), 30 Stände (#251) | Eine halbe Stunde nach dem DB-Backup, ebenfalls auf demselben Host. Die Wiederherstellung beschreibt `REDIS-BACKUP.md` im Deploy-Repository. Mit #52 kann es entfallen. |
 | **Watchtower** | Spielt neue Images ein | Prüft alle 10 Minuten (`--interval 600`). |
 
 Alle Container liegen im Standardnetz des Compose-Projekts. Die Services erreichen sich über ihre Compose-Namen (`http://pwr-<name>-service:<port>`); das sind die Standardwerte der Properties `pwr-<name>-service-url`. Von außen ist nur der Ingress erreichbar. Die Backend-Services prüfen selbst keine Anmeldung ([Kapitel 8.1](08-querschnittliche-konzepte.md#81-sicherheit)).
@@ -139,7 +139,7 @@ ENV JAVA_TOOL_OPTIONS="-Xmx<Limit> -XX:G1PeriodicGCInterval=60000"
 | pwr-profile-service | 384 MB | 38 MB |
 | pwr-report-service | 512 MB | 147 MB (Vorschau und Export) |
 
-- **Gemessen** ist mit den Seed-Daten unter typischer Last: Skill-Baum und Suche, alle Berater laden, Profilprüfung, Housekeeping, View-Profile anlegen, Vorschauen und Exporte. Mit dem jeweiligen Limit lief jeder Service ohne volle GC. Nach einer Minute ohne Last fiel der zugesagte Heap auf 57–85 MB, beim Report-Service auf 224 MB.
+- **Gemessen** ist mit den Seed-Daten unter typischer Last: Skill-Baum und Suche, alle Berater laden, Profilprüfung, Housekeeping, Profilauszüge anlegen, Vorschauen und Exporte. Mit dem jeweiligen Limit lief jeder Service ohne volle GC. Nach einer Minute ohne Last fiel der zugesagte Heap auf 57–85 MB, beim Report-Service auf 224 MB.
 - **Abstand:** Die Produktion hat rund 30-mal so viele Profile. Deshalb liegen die Limits beim Fünf- bis Zehnfachen des gemessenen Bedarfs, beim Report-Service beim Dreifachen.
 - **Überschreiben:** Ein `JAVA_TOOL_OPTIONS` im Deployment ersetzt den Wert aus dem Image ganz. Es muss also beide Optionen enthalten, sonst fehlt die Rückgabe. `java -XX:+PrintFlagsFinal -version` im Container zeigt, was gilt (`MaxHeapSize`, `G1PeriodicGCInterval`).
 - Das Limit gilt nur für den Heap. Metaspace, Code-Cache und Threads kommen dazu, ein Container braucht also mehr als sein Heap-Limit.

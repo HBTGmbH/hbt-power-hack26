@@ -4,7 +4,7 @@
 |----------------------------------------------------------|-------------------------------------|-----------:|-------------------------|
 | [`pwr-webclient`](pwr-webclient/README.md)               | React frontend                      |       3000 | React 18, MUI v4        |
 | [`pwr-profile-service`](pwr-profile-service/README.md)   | Consultants, profiles, admin        |       9004 | Spring Boot 2.2, MariaDB |
-| [`pwr-skill-service`](pwr-skill-service/README.MD)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
+| [`pwr-skill-service`](pwr-skill-service/README.md)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
 | [`pwr-report-service`](pwr-report-service/README.md)     | Report generation (BIRT)            |       9005 | Spring Boot 2.2, MariaDB |
 | `pwr-statistics-service`                                 | Statistics                          |       9007 | Spring Boot 2.7, Redis  |
 | `pwr-view-profile-service`                               | View profiles and report templates  |       9008 | Spring Boot 2.2, Redis  |

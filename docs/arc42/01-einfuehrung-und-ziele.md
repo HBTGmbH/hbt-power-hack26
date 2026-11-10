@@ -5,7 +5,7 @@
 HBT Power ist die Anwendung, in der die Beraterinnen und Berater der HBT ihr Profil pflegen. Daraus entstehen die Profile, die HBT an Kunden und Interessenten weitergibt.
 
 - **Profil pflegen:** Werdegang, Ausbildung, Weiterbildungen, Qualifikationen, Sprachen, Branchen, Schwerpunkte, Projekte (Kunde, Vermittler, Rollen, Skills, Zeitraum) und Skills mit Bewertung und Versionen. Eine Profilprüfung zeigt, was fehlt oder veraltet ist (#139).
-- **Exportieren:** Aus einem Profil entsteht ein *View-Profil*, eine bearbeitbare Momentaufnahme für einen Export. Darin wird ausgewählt, sortiert und gruppiert, und optional werden Skills übersetzt (#174). Daraus erzeugt der Report Service ein Word-Dokument in einer HBT-Vorlage oder eine PDF-Vorschau.
+- **Exportieren:** Aus einem Profil entsteht ein *Profilauszug*, eine bearbeitbare Momentaufnahme für einen Export. Darin wird ausgewählt, sortiert und gruppiert, und optional werden Skills übersetzt (#174). Daraus erzeugt der Report Service ein Word-Dokument in einer HBT-Vorlage oder eine PDF-Vorschau.
 - **Pflegen (Admin):**
   - Berater anlegen, ändern und löschen.
   - Den Skill-Baum pflegen: Kategorien, Skills, Aliase, Versionen, Übersetzungen.
@@ -22,7 +22,7 @@ flowchart LR
 
     subgraph Power[HBT Power]
         P[Profil pflegen]
-        V[View-Profil zusammenstellen]
+        V[Profilauszug zusammenstellen]
         X[Dokument exportieren<br/>DOCX, PDF-Vorschau]
         S[Statistik und Suche]
         K[Skill-Baum, Profil-Elemente,<br/>Vorlagen pflegen]

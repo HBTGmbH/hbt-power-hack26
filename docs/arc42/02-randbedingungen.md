@@ -5,9 +5,9 @@
 | Randbedingung | Erläuterung |
 |---|---|
 | **JDK 13** für alle Java-Services | Lombok 1.18.0/1.18.6 in den Spring-Boot-2.2-Services kompiliert ab JDK 16 nicht. Die Version ist in `.java-version` und in CI (Zulu 13) festgelegt, die Images laufen auf `azul/zulu-openjdk-alpine:13-jre`. Ein Upgrade ist in #51 geplant. |
-| **Spring Boot 2.2** (Profile, Skill, Report, View-Profile), **2.7** (Edge, Statistics) | Die unterschiedliche Syntax für Profile in YAML ist in [`AGENTS.md`](../../AGENTS.md) beschrieben. |
+| **Spring Boot 2.2** (Profile, Skill, Report und View-Profile Service), **2.7** (Edge, Statistics) | Die unterschiedliche Syntax für Profile in YAML ist in [`AGENTS.md`](../../AGENTS.md) beschrieben. |
 | **MariaDB 11** | Drei Datenbanken: `profile`, `skill` und `report`. Die Kollation `utf8mb4_uca1400_ai_ci` ignoriert Groß-/Kleinschreibung und Akzente (#207). |
-| **Redis 7** | View-Profile, Vorlagen-Metadaten, Statistikkopie. In der Produktion eine Instanz mit getrennten logischen Datenbanken. |
+| **Redis 7** | Profilauszüge, Vorlagen-Metadaten, Statistikkopie. In der Produktion eine Instanz mit getrennten logischen Datenbanken. |
 | **BIRT 4.3.1** mit iText 2.1.7 | Rendert DOCX und PDF. Die Vorlagen werden nur mit dem Eclipse BIRT Designer bearbeitet (#64). |
 | **Webclient:** React 18, Material-UI v4, Create React App (react-scripts 5), Redux 4, TypeScript 5.3 | Node 20 ist festgelegt (`pwr-webclient/.nvmrc`); npm 11 scheitert an den Abhängigkeiten. |
 | **Microsoft Entra ID** (Azure AD) | Anmeldung (OIDC mit `@azure/msal-browser`) und App-Rollen `Power.User` und `Power.Admin`. |

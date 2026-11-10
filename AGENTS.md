@@ -101,6 +101,21 @@ A PR only shows checks for the folders it touches. Workflow changes must pass ac
 - **Pinning policy** in `.github/zizmor.yml`: first-party actions (`actions/*`, `github/*`, `docker/*` …) and `HBTGmbH/*` with a major tag (`@v7`), all others with the full commit SHA plus a `# vX.Y.Z` comment.
 - **Dependabot** (`.github/dependabot.yml`) opens a PR for new action versions once a week, at the earliest 7 days after a release (`cooldown`). For a new major version check that every input the workflow uses still exists in the new `action.yml`. Maven and npm are not covered.
 
+<!-- knowledge-base -->
+## Knowledge base
+
+The project knowledge (public docs, an optional private **project sidecar** readable by project members only, and optional **HBT-wide knowledge** readable by all employees) is searchable through [`tools/knowledge`](tools/knowledge/README.md): MCP server `knowledge` (tools `search`, `read`, `define`, `overview`) or `node tools/knowledge/kb.mjs search "<question>"`.
+
+The knowledge base is being tried out (ADR-26, status *vorgeschlagen*). While that trial runs, the rules below and the knowledge-base item of the Definition of Done apply to everyone who works with it; if ADR-26 is rejected, they go with it. The domain language (ADR-27) applies regardless.
+
+- The weekly run changes only Markdown; outdated code comments it finds are listed as hints in the project sidecar (`consolidation/hints.md`), shown by `kb status` and at the start of each session. Working in that area, fix the comment in the same branch as a small fix along the way and delete the hint from the sidecar file.
+
+- Look things up before answering questions about the domain, processes, terms, architecture or decisions, and before changing code whose business meaning is unclear. Cite the `id` of the source.
+- **Decisions** form one register: public ADRs (arc42 chapter 9) and internal ones (`ADR-Inn` project, `ADR-HBT-nn` HBT-wide). Check `kb.mjs decisions <topic>` before changing architecture, flows or rules; record new ones with `kb.mjs decide public|intern|hbt "<title>"`. Superseded decisions stay, marked „abgelöst durch ADR-nn“.
+- The glossary is the binding **domain language**: one term per thing. Name things in docs, UI texts, comments and new code with the glossary term or its code name; replace words listed under „Nicht verwenden“ (`define <word>` tells you the right term). Add a new term to the glossary before using it. Each term is a note (`docs/glossar/<Term>.md`); link it with a normal relative Markdown link (no `[[…]]` wikilinks in this repository — they belong to the private Obsidian knowledge modules only); `kb.mjs audit` reports deviations.
+- Results marked **INTERN** (project sidecar) or **INTERN:HBT** (HBT-wide) are private: use them to understand, never copy them, literally or paraphrased, into code, comments, test data, commits, issues, PRs or public docs, and never copy project knowledge into HBT-wide knowledge. A hook blocks literal copies; `node tools/knowledge/kb.mjs check` scans the repository.
+- New knowledge goes where it belongs: public (arc42, glossary, this file) for architecture, code and UI terms; the project sidecar for internal processes, customers, sales and operations of this project (when in doubt, here); HBT-wide knowledge only for what applies to all projects and reveals nothing about this one.
+
 ## GitHub workflow
 
 - **Repository:** `HBTGmbH/hbt-power` (take the owner from `git remote get-url origin`). It is **public**.
@@ -155,6 +170,7 @@ Apply this at the end of each task to what the task changed, and report which it
 - [ ] `AGENTS.md` and `README.md` are updated in the same PR if a rule, command, port or prerequisite changed
 - [ ] The affected chapter of [`docs/arc42/`](docs/arc42/README.md) is updated in the same PR if a service, an interface between services, a flow, the deployment or an architecture decision changed (a new decision gets the next ADR number in chapter 9)
 - [ ] No operating environment details in code, docs, commits, issue or PR (see GitHub workflow)
+- [ ] Nothing from the private knowledge sidecar in code, docs, commits, issue or PR: `node tools/knowledge/kb.mjs check --staged` passes (see Knowledge base; applies while ADR-26 is being tried)
 - [ ] Every commit message starts with `#NNN - ` (or `#noissue - `)
 - [ ] Small fixes made along the way (see GitHub workflow) are listed in the PR
 - [ ] PR body follows the template, contains `Closes #NNN` and the compliance sentence
