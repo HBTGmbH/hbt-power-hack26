@@ -665,6 +665,37 @@ test('guard: a leak committed locally into Markdown is still found on push, unti
   assert.equal(push(), null, 'published on purpose: no longer a leak');
 });
 
+test('UTF-16 files (PowerShell 5 `echo >`), which git takes for binary, are checked too', () => {
+  const { base, repo } = fixture();
+  const u16 = (text) => Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(text, 'utf16le')]);
+  assert.equal(kbm.decodeText(u16('Grüße\r\n')), 'Grüße\r\n');
+  assert.equal(kbm.decodeText(Buffer.from('Grüße', 'utf16le')), 'Grüße', 'without BOM');
+  assert.equal(kbm.decodeText(Buffer.from('Grüße', 'utf16le').swap16()), 'Grüße', 'big endian');
+  assert.equal(kbm.decodeText(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0x0d, 0x49, 0x48, 0x44, 0x52])), null, 'a real binary');
+  gitCommit(repo, '#1 - base');
+  const remote = path.join(base, 'remote.git');
+  execFileSync('git', ['init', '-q', '--bare', remote]);
+  execFileSync('git', ['remote', 'add', 'origin', remote], { cwd: repo });
+  execFileSync('git', ['push', '-q', '-u', 'origin', 'HEAD:refs/heads/main'], { cwd: repo });
+  const kb = kbm.loadKnowledge(repo);
+  const bash = (command) => kbm.guardDecision(kb, { tool_name: 'Bash', tool_input: { command } });
+  const file = path.join(repo, 'docs/ps.md');
+  fs.writeFileSync(file, u16(`# PS\r\n\r\n${LEAK}\r\n`));
+  assert.ok(bash('git add docs/ps.md && git commit -m x'), 'new file, add in the same command');
+  execFileSync('git', ['add', 'docs/ps.md'], { cwd: repo });
+  assert.ok(bash('git commit -m x'), 'staged');
+  assert.ok(kbm.checkRepo(kbm.loadKnowledge(repo), { staged: true }).findings.some((f) => f.file === 'docs/ps.md' && f.line === 3));
+  gitCommit(repo, '#2 - lokal');
+  assert.ok(bash('git push'), 'unpushed');
+  assert.ok(kbm.checkRepo(kbm.loadKnowledge(repo)).findings.some((f) => f.file === 'docs/ps.md'), 'full check');
+  execFileSync('git', ['push', '-q', 'origin', 'HEAD:main'], { cwd: repo });
+  fs.writeFileSync(file, u16(`# PS\r\n`));
+  gitCommit(repo, '#3 - weg');
+  execFileSync('git', ['push', '-q', 'origin', 'HEAD:main'], { cwd: repo });
+  fs.writeFileSync(file, u16(`# PS\r\n\r\n${LEAK}\r\n`));
+  assert.ok(bash('git commit -am x'), 'tracked file changed, commit -a');
+});
+
 test('extra internal texts (e.g. Jira) count as fingerprints for check and scan', () => {
   const { base, repo } = fixture();
   gitCommit(repo, '#1 - base');

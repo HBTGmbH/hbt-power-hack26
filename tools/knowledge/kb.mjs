@@ -1194,22 +1194,72 @@ export function fingerprints(kb, { minLen = 40, targetLevel = 0, extra = [] } = 
 const addedLines = (diff) => diff.split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++')).map((l) => l.slice(1)).join('\n');
 const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 
-/** What `git push` would publish: the diff of the commits the remote doesn't have yet. */
-function unpushedDiff(root) {
+/**
+ * Text of a file with NUL bytes: UTF-16 (with or without BOM) decoded, anything else (real binaries) null.
+ * PowerShell 5 writes UTF-16 with `echo … >`; git takes such a file for binary and its diff shows no lines.
+ */
+export function decodeText(buf) {
+  if (!buf || buf.length < 2) return null;
+  const le = (b) => b.subarray(0, b.length & ~1).toString('utf16le');
+  const be = (b) => le(Buffer.from(b.subarray(0, b.length & ~1)).swap16());
+  if (buf[0] === 0xff && buf[1] === 0xfe) return le(buf.subarray(2));
+  if (buf[0] === 0xfe && buf[1] === 0xff) return be(buf.subarray(2));
+  const n = Math.min(buf.length, 4096) & ~1;
+  let even = 0, odd = 0;
+  for (let i = 0; i < n; i++) if (buf[i] === 0) { if (i % 2) odd++; else even++; }
+  if (odd > n / 4 && even === 0) return le(buf);
+  if (even > n / 4 && odd === 0) return be(buf);
+  return null;
+}
+
+/** Changed files git counts as binary in `git diff <args>`, with their decoded text (whole file, read by `read`). */
+function binaryTexts(root, args, read) {
+  const out = [];
+  for (const rec of git(root, ['diff', '--numstat', '-z', '--no-renames', ...args]).split('\0')) {
+    const m = /^-\t-\t([\s\S]+)$/.exec(rec);
+    if (!m) continue;
+    const text = decodeText(read(m[1]));
+    if (text) out.push({ file: m[1], text });
+  }
+  return out;
+}
+
+const readWorktree = (root) => (rel) => {
+  try { const f = path.join(root, rel); return fs.statSync(f).size <= 1 << 20 ? fs.readFileSync(f) : null; } catch { return null; }
+};
+const readBlob = (root, rev) => (rel) => {
+  try { return execFileSync('git', ['show', `${rev}:${rel}`], { cwd: root, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 20 }); } catch { return null; }
+};
+/** Text of a file in the working tree: UTF-8, or UTF-16 decoded; null for a binary or an unreadable file. */
+function readText(file) {
+  let buf;
+  try { if (fs.statSync(file).size > 1 << 20) return null; buf = fs.readFileSync(file); } catch { return null; }
+  return buf.includes(0) ? decodeText(buf) : buf.toString('utf8');
+}
+
+/** What `git push` would publish: the text of the commits the remote doesn't have yet. */
+function unpushedText(root) {
   const base = publicBase(root);
-  return git(root, ['diff', '-U0', '--no-color', base === 'HEAD' ? EMPTY_TREE : base, 'HEAD']);
+  const range = [base === 'HEAD' ? EMPTY_TREE : base, 'HEAD'];
+  return [addedLines(git(root, ['diff', '-U0', '--no-color', ...range])),
+    ...binaryTexts(root, range, readBlob(root, 'HEAD')).map((b) => b.text)].join('\n');
 }
 
 /** Text a `git commit` in this command would record, including `-a` and a `git add` in the same command. */
 function commitText(root, cmd) {
   const all = /git\s+commit\b[^;&|]*\s(--all\b|-[a-zA-Z]*a[a-zA-Z]*\b)/.test(cmd);
   const adds = /git\s+add\b/.test(cmd);
-  if (!all && !adds) return addedLines(git(root, ['diff', '--cached', '-U0', '--no-color']));
+  if (!all && !adds) {
+    return [addedLines(git(root, ['diff', '--cached', '-U0', '--no-color'])),
+      ...binaryTexts(root, ['--cached'], readBlob(root, '')).map((b) => b.text)].join('\n');
+  }
   const head = git(root, ['rev-parse', '--verify', '-q', 'HEAD']).trim() || EMPTY_TREE;
-  let text = addedLines(git(root, ['diff', '-U0', '--no-color', head]));
+  let text = [addedLines(git(root, ['diff', '-U0', '--no-color', head])),
+    ...binaryTexts(root, [head], readWorktree(root)).map((b) => b.text)].join('\n');
   if (adds) {
     for (const rel of git(root, ['ls-files', '--others', '--exclude-standard']).split('\n').filter(Boolean)) {
-      try { if (fs.statSync(path.join(root, rel)).size <= 1 << 20) text += `\n${fs.readFileSync(path.join(root, rel), 'utf8')}`; } catch { /* ignore */ }
+      const t = readText(path.join(root, rel));
+      if (t) text += `\n${t}`;
     }
   }
   return text;
@@ -1243,17 +1293,17 @@ export function checkRepo(kb, { staged = false, extra = [] } = {}) {
         line++;
       }
     }
+    for (const b of binaryTexts(root, ['--cached'], readBlob(root, ''))) {
+      b.text.split(/\r?\n/).forEach((l, i) => {
+        for (const hit of findLeaks(l, guard)) findings.push({ file: b.file, line: i + 1, ...hit });
+      });
+    }
     return { findings, guard };
   }
   const files = git(root, ['ls-files']).split('\n').filter(Boolean);
   for (const rel of files) {
-    const full = path.join(root, rel);
-    let text;
-    try {
-      if (fs.statSync(full).size > 1 << 20) continue;
-      text = fs.readFileSync(full, 'utf8');
-    } catch { continue; }
-    if (text.includes('\u0000')) continue;
+    const text = readText(path.join(root, rel));
+    if (text === null) continue;
     if (/\.md$/i.test(rel) && /^intern$/i.test(String(parseFrontmatter(text).meta.visibility || ''))) {
       findings.push({ file: rel, line: 1, kind: 'visibility: intern im öffentlichen Repo', text: '' });
     }
@@ -1337,7 +1387,7 @@ export function guardDecision(kb, input) {
     if (!OUTWARD.test(cmd)) return null;
     text = cmd;
     if (/git\s+commit/.test(cmd)) text += `\n${commitText(root, cmd)}`;
-    if (/git\s+push/.test(cmd)) text += `\n${addedLines(unpushedDiff(root))}`;
+    if (/git\s+push/.test(cmd)) text += `\n${unpushedText(root)}`;
     target = 'Befehl';
   } else if (['Write', 'Edit', 'MultiEdit', 'NotebookEdit'].includes(name)) {
     const file = path.resolve(root, String(ti.file_path || ti.notebook_path || ''));
