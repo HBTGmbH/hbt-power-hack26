@@ -236,7 +236,7 @@ jobs:
             if [ -n "$(git -C "$d" status --porcelain)" ]; then
               echo "::warning::Änderungen in $(basename "$d") verworfen (nur lesen)"
               git -C "$d" status --porcelain > "$RUN_DIR/verworfen-$(basename "$d").txt"
-              git -C "$d" reset -q --hard && git -C "$d" clean -qfd
+              git -c core.hooksPath=/dev/null -C "$d" reset -q --hard && git -c core.hooksPath=/dev/null -C "$d" clean -qfd
             fi
           done
 
@@ -289,7 +289,7 @@ jobs:
           others=$(git diff --cached --name-only | { grep -v '^consolidation/state\.json$' || true; })
           if [ -n "$others" ]; then
             branch="kb/konsolidierung-${WEEK,,}"
-            git switch -c "$branch"
+            git -c core.hooksPath=/dev/null switch -c "$branch"
             git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "Konsolidierung $WEEK"
             git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
             {
@@ -378,7 +378,7 @@ jobs:
           else
             ref="#noissue"; branch="kb/wissen-konsolidieren-${WEEK,,}"; closes=""
           fi
-          git switch -c "$branch"
+          git -c core.hooksPath=/dev/null switch -c "$branch"
           git -c core.hooksPath=/dev/null -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "$ref - Wissen und Doku mit dem Code abgeglichen ($WEEK)"
           git -c core.hooksPath=/dev/null push -q "https://x-access-token:${GH_TOKEN}@github.com/${PROJECT_REPO}.git" "$branch"
           {
