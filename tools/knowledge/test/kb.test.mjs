@@ -613,9 +613,21 @@ test('a project sidecar from a shared configuration only loads for its own proje
     assert.deepEqual(kbm.loadKnowledge(repo).config.sources.map((s) => s.dir), [own]);
     process.env.KB_SOURCES = foreign;
     assert.ok(!kbm.loadKnowledge(repo).config.sources.some((s) => s.dir === foreign));
+    // named directly, e.g. a KB_PRIVATE_DIR set for the whole machine: another project's sidecar still stays out
+    delete process.env.KB_SOURCES;
+    process.env.KB_PRIVATE_DIR = foreign;
+    assert.ok(!kbm.loadKnowledge(repo).config.sources.some((s) => s.dir === foreign));
+    fs.writeFileSync(path.join(repo, '.knowledge.local.json'), JSON.stringify({ privateDir: foreign }));
+    delete process.env.KB_PRIVATE_DIR;
+    assert.ok(!kbm.loadKnowledge(repo).config.sources.some((s) => s.dir === foreign));
+    fs.rmSync(path.join(repo, '.knowledge.local.json'));
+    // a sidecar without `project` named directly still loads
+    fs.writeFileSync(path.join(foreign, 'knowledge.json'), JSON.stringify({ level: 'project' }));
+    process.env.KB_PRIVATE_DIR = foreign;
+    assert.ok(kbm.loadKnowledge(repo).config.sources.some((s) => s.dir === foreign));
   } finally {
     if (old === undefined) delete process.env.XDG_CONFIG_HOME; else process.env.XDG_CONFIG_HOME = old;
-    delete process.env.KB_DISCOVER; delete process.env.KB_SOURCES;
+    delete process.env.KB_DISCOVER; delete process.env.KB_SOURCES; delete process.env.KB_PRIVATE_DIR;
   }
 });
 
@@ -707,7 +719,8 @@ test('weekly run template rejects every changed file except Markdown and knowled
   const line = yml.split('\n').find((l) => l.trim().startsWith('not_markdown=')).trim();
   const probe = (names) => {
     const script = `${line.replace('git diff --cached --name-only', `printf '%s\\n' ${names.map((n) => `'${n}'`).join(' ')}`)}\nprintf '%s' "$not_markdown"`;
-    return execFileSync('bash', ['-c', script], { encoding: 'utf8' });
+    // script on stdin, not `-c`: WSL's bash.exe (first `bash` on PATH in PowerShell) re-parses `-c` and expands `$not_markdown` early
+    return execFileSync('bash', ['-s'], { input: script, encoding: 'utf8' });
   };
   try { execFileSync('bash', ['-c', 'true']); } catch { t.skip('no bash'); return; }
   assert.equal(probe(['docs/a.md', 'knowledge.json', 'pwr-x/README.md']), '');

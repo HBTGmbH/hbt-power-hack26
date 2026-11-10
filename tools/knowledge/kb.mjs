@@ -106,6 +106,8 @@ export function resolveSources(root, pub, priv) {
     const cfg = { ...DEFAULT_PRIVATE, ...(readJson(path.join(abs, 'knowledge.json')) || {}) };
     const level = cfg.level === 'company' || cfg.level === 'project' ? cfg.level : wanted.level || 'company';
     if (level === 'project' && wanted.matchProject && !forThisProject(cfg)) return;
+    // a sidecar named directly (KB_PRIVATE_DIR, privateDir, neighbour folder) may lack `project`, but must not name another one
+    if (level === 'project' && cfg.project && !forThisProject(cfg)) return;
     seen.add(abs);
     let id = level === 'project' && !sources.some((s) => s.level === 'project')
       ? 'intern'
