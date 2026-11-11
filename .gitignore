@@ -2,3 +2,7 @@
 target
 # macOS Finder metadata
 .DS_Store
+
+# Wissensbasis: privater Sidecar und lokale Einstellung
+.knowledge.local.json
+.knowledge-intern/

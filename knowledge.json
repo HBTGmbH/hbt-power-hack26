@@ -1,0 +1,134 @@
+{
+  "name": "hbt-power",
+  "sources": [
+    {
+      "glob": "docs/arc42/README.md",
+      "audience": [
+        "business",
+        "domain",
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/arc42/01-*.md",
+      "audience": [
+        "business",
+        "domain",
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/arc42/03-*.md",
+      "audience": [
+        "domain",
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/arc42/10-*.md",
+      "audience": [
+        "business",
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/arc42/11-*.md",
+      "audience": [
+        "business",
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/arc42/12-*.md",
+      "audience": [
+        "business",
+        "domain",
+        "tech"
+      ],
+      "summary": "Begriffe der Fachlichkeit und der Technik von HBT Power, mit den Namen im Code."
+    },
+    {
+      "glob": "docs/arc42/02-*.md",
+      "audience": [
+        "business",
+        "tech"
+      ],
+      "summary": "Technische, organisatorische und rechtliche Vorgaben, an die HBT Power gebunden ist."
+    },
+    {
+      "glob": "docs/arc42/*.md",
+      "audience": [
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/glossar/*.md",
+      "audience": [
+        "business",
+        "domain",
+        "tech"
+      ]
+    },
+    {
+      "glob": "docs/**/*.md"
+    },
+    {
+      "glob": "tools/knowledge/README.md",
+      "audience": [
+        "business",
+        "domain",
+        "tech"
+      ],
+      "boost": 0.5
+    },
+    {
+      "glob": "README.md",
+      "audience": [
+        "tech"
+      ],
+      "language": "en"
+    },
+    {
+      "glob": "AGENTS.md",
+      "audience": [
+        "tech"
+      ],
+      "language": "en"
+    },
+    {
+      "glob": "pwr-*/README.md",
+      "audience": [
+        "tech"
+      ],
+      "language": "en"
+    }
+  ],
+  "glossaries": [
+    "docs/arc42/12-glossar.md"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/target/**",
+    "**/build/**",
+    ".knowledge-intern/**"
+  ],
+  "auditIgnore": [
+    "AdminNotification",
+    "MaxHeapSize",
+    "pwr-skill-service/lucene-data"
+  ],
+  "terminology": {
+    "language": "de",
+    "scan": [
+      "pwr-webclient/src/localization/de-DE.json"
+    ],
+    "allow": [
+      "View-Profile Service",
+      "View-Profile-Service"
+    ]
+  },
+  "language": "de",
+  "terms": {
+    "dir": "docs/glossar"
+  }
+}

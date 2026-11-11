@@ -4,7 +4,7 @@
 |----------------------------------------------------------|-------------------------------------|-----------:|-------------------------|
 | [`pwr-webclient`](pwr-webclient/README.md)               | React frontend                      |       3000 | React 18, MUI v4        |
 | [`pwr-profile-service`](pwr-profile-service/README.md)   | Consultants, profiles, admin        |       9004 | Spring Boot 2.2, MariaDB |
-| [`pwr-skill-service`](pwr-skill-service/README.MD)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
+| [`pwr-skill-service`](pwr-skill-service/README.md)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
 | [`pwr-report-service`](pwr-report-service/README.md)     | Report generation (BIRT)            |       9005 | Spring Boot 2.2, MariaDB |
 | `pwr-statistics-service`                                 | Statistics                          |       9007 | Spring Boot 2.7, Redis  |
 | `pwr-view-profile-service`                               | View profiles and report templates  |       9008 | Spring Boot 2.2, Redis  |
@@ -171,6 +171,28 @@ Reset MariaDB and Redis to an empty state (deletes all local data):
 ```shell
 podman compose down -v
 ```
+
+## Knowledge base
+
+The project knowledge (this README, `AGENTS.md`, arc42, the glossary in [`docs/glossar/`](docs/glossar/)) is searchable
+through [`tools/knowledge`](tools/knowledge/README.md), a Node script without dependencies (decisions
+[ADR-26 and ADR-27](docs/arc42/09-architekturentscheidungen.md#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar)).
+Nothing to install: Claude Code picks it up from `.claude/settings.json` (hooks at session start, on every prompt and before
+writes, commits and pushes) and `.mcp.json` (MCP server `knowledge`).
+
+```shell
+node tools/knowledge/kb.mjs status                 # what is loaded
+node tools/knowledge/kb.mjs search "<question>"
+node tools/knowledge/kb.mjs define Profilauszug    # term of the domain language
+node tools/knowledge/kb.mjs audit                  # replaced words, incomplete ADRs, dead links
+node tools/knowledge/kb.mjs check --staged         # no private content in the next commit
+node --test tools/knowledge/test/*.test.mjs
+```
+
+Project members may add a private knowledge source; without one the tool works with the public docs only. How to set one
+up, the leak protection and the weekly run that keeps docs and code aligned are in
+[`tools/knowledge/README.md`](tools/knowledge/README.md). The rules for working with it are in
+[`AGENTS.md`](AGENTS.md#knowledge-base).
 
 ## Known issues
 
