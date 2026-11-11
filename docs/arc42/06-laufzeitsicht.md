@@ -77,7 +77,7 @@ sequenceDiagram
 
 Ein Skill in einem Projekt ist derselbe Datensatz wie der Skill im Profil. Fehlt er im Profil, legt `ProfileEntryService.handleProjectSkill` ihn dort an.
 
-## 6.3 View-Profil anlegen
+## 6.3 Profilauszug anlegen
 
 ```mermaid
 sequenceDiagram
@@ -97,7 +97,7 @@ sequenceDiagram
     end
     V->>V: Momentaufnahme bauen: Einträge, Projekte,<br/>Anzeigekategorien, Sichtbarkeit
     V->>R: speichern (@RedisHash viewProfile)
-    V-->>W: View-Profil
+    V-->>W: Profilauszug
     Note over W,V: Jede weitere Änderung (zeigen, sortieren, verschieben)<br/>ist ein PATCH – @ViewProfileAutoSave speichert danach.
 ```
 
@@ -116,14 +116,14 @@ sequenceDiagram
 
     W->>E: POST …/view/{id}/{vorlage}/report
     E->>V: + X-Pwr-User-Login, X-Pwr-User-Initials
-    V->>V: View-Profil und Vorlage laden, Besitzer prüfen
+    V->>V: Profilauszug und Vorlage laden, Besitzer prüfen
     V->>R: POST /report?type=DOC (ReportInfo)<br/>gibt die X-Pwr-User-* weiter
     R->>P: GET /consultants/{exportiert von} (Name)
     R->>R: ReportData anlegen: RUNNING
     R-->>V: 201 Location
     V-->>W: 201
     par asynchron (@Async)
-        R->>R: View-Profil → Exportmodell → XML
+        R->>R: Profilauszug → Exportmodell → XML
         R->>P: GET /profile-pictures/by-initials/{kürzel}
         R->>R: BIRT rendert DOCX mit der Vorlage aus designfiles
         R->>R: ReportData: DONE (oder ERROR)
@@ -199,7 +199,7 @@ sequenceDiagram
     W->>P: DELETE /admin/consultants/{kürzel}
     P->>P: nur inaktive Berater (sonst 423)
     P->>V: GET /view/{kürzel}
-    loop je View-Profil
+    loop je Profilauszug
         P->>V: DELETE /view/{kürzel}/{id}
     end
     P->>R: DELETE /admin/report/{kürzel}
@@ -237,7 +237,7 @@ sequenceDiagram
         W->>V: GET /admin/housekeeping
         V->>P: GET /consultants/names
         V->>R: GET /admin/file
-        V-->>W: View-Profile ohne Berater, Vorlagen ohne Datei
+        V-->>W: Profilauszüge ohne Berater, Vorlagen ohne Datei
     and Rubrik „Unbenutzt“ (#288)
         W->>P: GET /admin/housekeeping/unused
         P-->>W: Profil-Elemente ohne Nutzer je Typ
@@ -250,7 +250,7 @@ sequenceDiagram
         R-->>W: alte Exportdokumente mit Speicherplatz
     and
         W->>V: GET /admin/housekeeping/old
-        V-->>W: alte View-Profile
+        V-->>W: alte Profilauszüge
     end
     W->>W: Bereinigen? (Rückfrage mit Anzahl)
     W->>R: DELETE /admin/housekeeping/reports-without-consultant

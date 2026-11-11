@@ -4,7 +4,7 @@
 |----------------------------------------------------------|-------------------------------------|-----------:|-------------------------|
 | [`pwr-webclient`](pwr-webclient/README.md)               | React frontend                      |       3000 | React 18, MUI v4        |
 | [`pwr-profile-service`](pwr-profile-service/README.md)   | Consultants, profiles, admin        |       9004 | Spring Boot 2.2, MariaDB |
-| [`pwr-skill-service`](pwr-skill-service/README.MD)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
+| [`pwr-skill-service`](pwr-skill-service/README.md)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
 | [`pwr-report-service`](pwr-report-service/README.md)     | Report generation (BIRT)            |       9005 | Spring Boot 2.2, MariaDB |
 | `pwr-statistics-service`                                 | Statistics                          |       9007 | Spring Boot 2.7, Redis  |
 | `pwr-view-profile-service`                               | View profiles and report templates  |       9008 | Spring Boot 2.2, Redis  |
@@ -179,6 +179,29 @@ Reset MariaDB and Redis to an empty state (deletes all local data):
 ```shell
 podman compose down -v
 ```
+
+## Knowledge base
+
+The project knowledge (this README, `AGENTS.md`, arc42, the glossary in [`docs/glossar/`](docs/glossar/)) is searchable
+through the Claude Code plugin `knowledge` from [`HBTGmbH/hbt-leviathan-hack26`](https://github.com/HBTGmbH/hbt-leviathan-hack26)
+(decisions [ADR-26 and ADR-27](docs/arc42/09-architekturentscheidungen.md#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar)).
+`.claude/settings.json` registers its marketplace and enables it: when you open this repository in Claude Code and trust
+it, Claude Code offers to install it (read access to the tool repository needed). By hand:
+
+```shell
+claude plugin marketplace add HBTGmbH/hbt-leviathan-hack26
+claude plugin install knowledge@hbt-leviathan --scope project
+```
+
+After a restart, sessions start with an overview of the knowledge base, prompts get matching sections, and a hook blocks
+private content before writes, commits and pushes. The MCP server `knowledge` offers `search`, `read`, `define`
+(e.g. `Profilauszug`), `status`, `audit` (replaced words, incomplete ADRs, dead links) and `check` (no private content in
+the next commit).
+
+Project members may add a private knowledge source; without one the tool works with the public docs only. How to set one
+up, the leak protection and the weekly run that keeps docs and code aligned are in the
+[tool's README](https://github.com/HBTGmbH/hbt-leviathan-hack26#readme), other agents than Claude Code in its `INSTALL.md`.
+The rules for working with it are in [`AGENTS.md`](AGENTS.md#knowledge-base).
 
 ## Known issues
 

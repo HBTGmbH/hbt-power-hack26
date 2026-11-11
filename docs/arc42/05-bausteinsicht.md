@@ -11,7 +11,7 @@ flowchart LR
         direction TB
         P["pwr-profile-service<br/>Berater, Profile · 9004"]
         S["pwr-skill-service<br/>Skill-Baum, Suche · 9003"]
-        V["pwr-view-profile-service<br/>View-Profile, Vorlagen · 9008"]
+        V["pwr-view-profile-service<br/>Profilauszüge, Vorlagen · 9008"]
         R["pwr-report-service<br/>Dokumente (BIRT) · 9005"]
         ST["pwr-statistics-service<br/>Statistik · 9007"]
     end
@@ -20,7 +20,7 @@ flowchart LR
         direction TB
         DBP[("MariaDB profile")]
         DBS[("MariaDB skill<br/>+ Lucene-Index")]
-        RV[("Redis<br/>View-Profile, Vorlagen")]
+        RV[("Redis<br/>Profilauszüge, Vorlagen")]
         DBR[("MariaDB report")]
         RS[("Redis<br/>Statistikkopie")]
     end
@@ -42,7 +42,7 @@ Welcher Service welchen aufruft, zeigt [5.3](#53-abhängigkeiten-zwischen-den-se
 | **pwr-edge-service** | Einziger Eingang: Token prüfen, Rollen je Pfad, Identitäts-Header setzen, Routing | keine |
 | **pwr-profile-service** | Berater, Profile mit Einträgen, Projekten und Skills, Profil-Elemente, Profilbilder, Profilprüfung; Admin-Operationen über alle Profile | MariaDB `profile` |
 | **pwr-skill-service** | Skill-Baum (Kategorien, Skills, Aliase, Versionen, Übersetzungen) und Suche | MariaDB `skill`, Lucene-Index |
-| **pwr-view-profile-service** | View-Profile (Momentaufnahmen für einen Export), Vorlagen-Metadaten; stößt Export und Vorschau an | Redis |
+| **pwr-view-profile-service** | Profilauszüge (Momentaufnahmen für einen Export), Vorlagen-Metadaten; stößt Export und Vorschau an | Redis |
 | **pwr-report-service** | Rendert Dokumente mit BIRT, speichert die Dokumente (Historie) und die Vorlagen-Dateien | MariaDB `report` |
 | **pwr-statistics-service** | Eigene Kopie aller Berater und Profile; Statistik, Suche nach Beratern, wer was benutzt | Redis |
 
@@ -280,7 +280,7 @@ flowchart TB
   - Besitzer und Name, Sprache der Übersetzung (`localization`).
 - **`ReportTemplate`** (`@RedisHash("reportTemplate")`): Name, Beschreibung und `fileId`. Die Datei liegt im Report Service.
 - **Speichern und Lesen:** Jede Änderung speichert über den Aspekt `@ViewProfileAutoSave`. Beim Lesen repariert `ViewProfileRestoreAspect` ältere Daten, z. B. Standardwerte neuer Felder (#151).
-- ***Aktualisieren*:** Übernimmt Änderungen des Profils in ein View-Profil und behält dessen Einstellungen. Umbenannte Elemente findet es über die früheren Namen und den Skill-Baum (#230).
+- ***Aktualisieren*:** Übernimmt Änderungen des Profils in einen Profilauszug und behält dessen Einstellungen. Umbenannte Elemente findet es über die früheren Namen und den Skill-Baum (#230).
 
 ### 5.2.5 pwr-report-service
 
@@ -293,7 +293,7 @@ flowchart LR
         HA["HousekeepingAdminController"]
     end
     PRS["ProfileReportService<br/>@Async DOCX, PDF im Speicher"]
-    MC["ModelConvertService<br/>View-Profil → Exportmodell (JAXB)"]
+    MC["ModelConvertService<br/>Profilauszug → Exportmodell (JAXB)"]
     BIRT["BIRT-Engine<br/>DocBirtExportHandler, PdfBirtExportHandler,<br/>BirtRendering (Zeitlimit), PdfFonts"]
     FS[DBFileStorageService]
     CN["ConsultantNameClient<br/>ProfilePictureClient"]
@@ -312,10 +312,10 @@ flowchart LR
     BIRT --> FONT
 ```
 
-- **Ablauf beim Rendern:** Das View-Profil wird ins alte Exportmodell (`Profil`, `Projekt`, `Werdegang` …) übersetzt und als XML-Datei geschrieben. Die BIRT-Vorlage liest diese Datei über ihre XML-Datenquelle.
+- **Ablauf beim Rendern:** Der Profilauszug wird ins alte Exportmodell (`Profil`, `Projekt`, `Werdegang` …) übersetzt und als XML-Datei geschrieben. Die BIRT-Vorlage liest diese Datei über ihre XML-Datenquelle.
 - **`ReportData`** (Tabelle `report_data`):
   - das fertige Dokument, Status `RUNNING`, `DONE` oder `ERROR`;
-  - wer exportiert hat (aus den Headern, #214), welche Vorlage verwendet wurde und die Beschreibung des View-Profils.
+  - wer exportiert hat (aus den Headern, #214), welche Vorlage verwendet wurde und die Beschreibung des Profilauszugs.
 - **`DBFile`** (Tabelle `designfiles`): die BIRT-Designs. Auf sie verweist die `fileId` einer Vorlage im View-Profile Service.
 - **Schrift:** Die Hausschrift kommt aus `/fonts` (`export.font-directory`); ohne sie nimmt BIRT Noto Sans aus dem Image (`PdfFonts`).
 
@@ -350,7 +350,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph UI[modules]
-        HOME["home: Profil, Projekte, Skills,<br/>View-Profile, Dokumente, Statistik"]
+        HOME["home: Profil, Projekte, Skills,<br/>Profilauszüge, Dokumente, Statistik"]
         ADM["admin: Berater, Report Manager,<br/>Skill-Baum, Profil-Elemente, Housekeeping"]
         GEN["general: Pwr*-Komponenten"]
     end

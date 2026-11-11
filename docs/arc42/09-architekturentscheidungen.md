@@ -19,7 +19,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 | [06](#adr-06-commit-statt-version) | Commit statt Version | gilt | #71, #77, #78 |
 | [07](#adr-07-betrieb-mit-docker-compose-auf-einem-host-und-watchtower) | Betrieb mit Docker Compose auf einem Host und Watchtower | gilt | – |
 | [08](#adr-08-schema-mit-hibernate-ddl-auto-update-ohne-migrationswerkzeug) | Schema mit Hibernate `ddl-auto: update`, ohne Migrationswerkzeug | gilt | #27 |
-| [09](#adr-09-redis-für-view-profile-und-vorlagen-metadaten) | Redis für View-Profile und Vorlagen-Metadaten | übernommen, Ablösung vorgeschlagen | #52, #179 |
+| [09](#adr-09-redis-für-profilauszüge-und-vorlagen-metadaten) | Redis für Profilauszüge und Vorlagen-Metadaten | übernommen, Ablösung vorgeschlagen | #52, #179 |
 | [10](#adr-10-statistik-mit-eigener-kopie-aller-berater) | Statistik mit eigener Kopie aller Berater | gilt | #205, #208, #218 |
 | [11](#adr-11-birt-für-dokumente-docx-gespeichert-pdf-vorschau-live) | BIRT für Dokumente, DOCX gespeichert, PDF-Vorschau live | gilt, Ablösung untersucht | #64, #66, #155 |
 | [12](#adr-12-lizenzierte-schrift-nie-im-repository-oder-image) | Lizenzierte Schrift nie im Repository oder Image | gilt | #81, #82 |
@@ -36,6 +36,8 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 | [23](#adr-23-webclient-mit-laufzeitkonfiguration-und-gehashten-dateien) | Webclient mit Laufzeitkonfiguration und gehashten Dateien | gilt | #9, #10, #109 |
 | [24](#adr-24-spring-security-in-den-backend-services-erst-mit-eigener-tokenprüfung) | Spring Security in den Backend-Services erst mit eigener Tokenprüfung | gilt | #255, #256, #260 |
 | [25](#adr-25-keine-admin-meldungen) | Keine Admin-Meldungen | gilt | #138, #307 |
+| [26](#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar) | Wissensbasis aus öffentlicher Doku und privatem Sidecar | vorgeschlagen | [HBTGmbH/hbt-power-hack26#2](https://github.com/HBTGmbH/hbt-power-hack26/issues/2) |
+| [27](#adr-27-deutsche-domänensprache-mit-verbindlichem-glossar) | Deutsche Domänensprache mit verbindlichem Glossar | gilt | [HBTGmbH/hbt-power-hack26#2](https://github.com/HBTGmbH/hbt-power-hack26/issues/2) |
 
 ---
 
@@ -55,12 +57,12 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 
 - **Status:** übernommen; Zusammenlegung vorgeschlagen (#50 → #51 → #52)
 - **Kontext:** Die Web-Anwendung entstand 2016 mit dem Spring-Cloud-Netflix-Stack (Eureka, Hystrix, Feign). #50 nennt das schon damals überdimensioniert. 2023 wurde der Netflix-Stack entfernt, die Aufteilung blieb.
-- **Entscheidung:** Fünf fachliche Services, je einer mit eigenen Daten: Profile, Skill-Baum, Dokumente, View-Profile, Statistik. Dazu kommen die Edge und der Webclient.
+- **Entscheidung:** Fünf fachliche Services, je einer mit eigenen Daten: Profile, Skill-Baum, Dokumente, Profilauszüge, Statistik. Dazu kommen die Edge und der Webclient.
 - **Konsequenzen:**
   - Die Daten liegen in drei MariaDB-Datenbanken und Redis.
   - Verweise sind bloße Kürzel und IDs, Löschen ist nicht transaktional ([ADR-20](#adr-20-berater-löschen-über-services-ohne-verteilte-transaktion), [ADR-21](#adr-21-housekeeping-je-service)).
   - Für jedes Upgrade sind sieben Teile zu bewegen.
-  - Vorgeschlagen ist, Profile, Skill und Report zusammenzulegen (#50), danach Java und Spring Boot zu aktualisieren (#51) und View-Profile von Redis nach MariaDB zu holen (#52).
+  - Vorgeschlagen ist, Profile, Skill und Report zusammenzulegen (#50), danach Java und Spring Boot zu aktualisieren (#51) und Profilauszüge von Redis nach MariaDB zu holen (#52).
 
 ## ADR-03: Aufrufe zwischen Services mit RestTemplate
 
@@ -87,7 +89,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Ein Service, der im Auftrag des Benutzers einen anderen ruft, gibt die Header weiter.
   - Binärdaten lädt der Webclient mit Token als Blob.
   - Die Pfadregeln der Edge sehen den Pfad, wie er ankommt; die Services normalisieren ihn selbst. Deshalb lässt die Edge nur normalisierte Pfade durch, und jeder Service weist `/admin` für Nicht-Admins zusätzlich selbst ab (#260).
-  - Seit #255 setzt die Edge auch `X-Pwr-User-Admin`, auf jede Anfrage. Die Services mit Daten zu Beratern prüfen damit selbst, dass ein Benutzer nur seine eigenen Daten liest und ändert (`ConsultantAccess`): Die Edge kennt nur Pfade, nicht wem ein Dokument oder View-Profil gehört.
+  - Seit #255 setzt die Edge auch `X-Pwr-User-Admin`, auf jede Anfrage. Die Services mit Daten zu Beratern prüfen damit selbst, dass ein Benutzer nur seine eigenen Daten liest und ändert (`ConsultantAccess`): Die Edge kennt nur Pfade, nicht wem ein Dokument oder ein Profilauszug gehört.
 - **Konsequenzen:**
   - Ein Ort für die Rollenregeln, getestet in `SecurityConfigTest` und `AccountHeadersFilterTest`; die Prüfung je Berater liegt in jedem Service und ist dort getestet.
   - Die Backend-Services dürfen nur über die Edge und das Container-Netz erreichbar sein.
@@ -141,11 +143,11 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Es gibt keine Historie der Migrationen und keine automatische Rückabwicklung. Alte Spalten bleiben stehen.
   - Ein Skript läuft nur, wenn jemand es ausführt.
 
-## ADR-09: Redis für View-Profile und Vorlagen-Metadaten
+## ADR-09: Redis für Profilauszüge und Vorlagen-Metadaten
 
 - **Status:** übernommen; Ablösung durch JPA vorgeschlagen (#52)
 - **Kontext:** Der View-Profile Service war ein technisches Experiment: Aktionen als RPC, automatisches Speichern über einen Aspekt (#52).
-- **Entscheidung:** View-Profile und die Metadaten der Vorlagen liegen als Hashes in Redis. Die Vorlagen-Dateien liegen im Report Service (MariaDB).
+- **Entscheidung:** Profilauszüge und die Metadaten der Vorlagen liegen als Hashes in Redis. Die Vorlagen-Dateien liegen im Report Service (MariaDB).
 - **Konsequenzen:**
   - Änderungen am Modell müssen alte Daten lesbar halten ([Kapitel 8.2](08-querschnittliche-konzepte.md#82-persistenz)).
   - Metadaten und Datei einer Vorlage liegen in zwei Speichern; das Housekeeping prüft beide.
@@ -198,7 +200,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 - **Kontext:** In den Profilen standen 1.309 verschiedene Skill-Namen. 606 davon waren Aliase eines Skills im Baum, 67 unterschieden sich nur in der Schreibweise (#208).
 - **Entscheidung:**
   - **Aliase und Zusammenführen:** Skills haben global eindeutige Aliase, und Skills lassen sich zusammenführen (#27).
-  - **Normalisierung:** Ein Name steht für den Skill im Baum, auch als Alias oder in anderer Schreibweise. Beim Speichern wird nur die Schreibweise übernommen, Aliase bleiben, wie getippt. Statistik und View-Profile zeigen den Namen des Baums.
+  - **Normalisierung:** Ein Name steht für den Skill im Baum, auch als Alias oder in anderer Schreibweise. Beim Speichern wird nur die Schreibweise übernommen, Aliase bleiben, wie getippt. Statistik und Profilauszüge zeigen den Namen des Baums.
   - **Vergleich:** Namen vergleicht Java ohne Groß-/Kleinschreibung, wie die Kollation der MariaDB (#207). Die Tests nutzen H2 mit `IGNORECASE=TRUE`.
 - **Konsequenzen:**
   - Ein Skill wird überall gleich gezählt und angezeigt.
@@ -207,6 +209,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 ## ADR-14: Skill-Suche mit Hibernate Search und Lucene
 
 - **Status:** übernommen
+- **Kontext:** Die Skill-Vorschläge beim Eintippen (Profil, Projekt, Beratersuche, Admin) brauchen eine Suche über Namen, Aliase und Übersetzungen des Skill-Baums, die auch Wortanfänge und Tippfehler findet. Die Lösung stammt aus dem alten Code; gesuchte Skills wurden dort von unscharfen Treffern verdrängt (#32).
 - **Entscheidung:**
   - Hibernate Search 5 mit einem Lucene-Index im Dateisystem, der bei jedem Start neu aufgebaut wird.
   - Treffer in dieser Reihenfolge: genau, Wortanfang, unscharf (#32). Aliase und Übersetzungen sind durchsuchbar.
@@ -219,6 +222,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 ## ADR-15: Kurznamen der Berater zentral berechnet
 
 - **Status:** gilt (#216)
+- **Kontext:** Der Webclient zeigte den vollen Namen und baute ihn an jeder Stelle anders. Namen von Kolleginnen und Kollegen sollten persönlicher wirken: der Vorname, wo er eindeutig ist (#216).
 - **Entscheidung:**
   - Der Profile Service berechnet den Kurznamen jedes Beraters: Vorname, sonst so viele Buchstaben des Nachnamens wie nötig, sonst der volle Name mit Kürzel.
   - Er liefert ihn allen Benutzern unter `GET /consultants/names`, mit nichts außer Kürzel, Kurz- und vollem Namen.
@@ -250,6 +254,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 ## ADR-18: CI je Ordner mit Pfadfiltern und getrenntem Publish
 
 - **Status:** gilt (#6, #8)
+- **Kontext:** Die Workflows liefen nur bei Push auf `main` und pushten bei jedem Lauf ein Image; Pull Requests wurden nicht gebaut (#6). Actions liefen mit schwebender Hauptversion, ungeprüft und ohne Updates (#8).
 - **Entscheidung:**
   - Ein Workflow je Ordner, mit demselben Pfadfilter für Push und PR.
   - `check` auf PRs: Lesetoken, Cache, Image ohne Push.
@@ -267,20 +272,20 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 - **Kontext:** Firmen, Rollen, Sprachen, Qualifikationen usw. sind Einträge, die alle Profile teilen (`NameEntity`). Tippfehler und Dubletten sammelten sich.
 - **Entscheidung:**
   - Admins können Elemente über alle Profile umbenennen, zusammenführen und löschen, ebenso nicht mehr benutzte löschen.
-  - Der alte Name geht in `name_entity_former_name`. Wer ihn tippt, bekommt das Element, und *Aktualisieren* eines View-Profils findet es darüber.
+  - Der alte Name geht in `name_entity_former_name`. Wer ihn tippt, bekommt das Element, und *Aktualisieren* eines Profilauszugs findet es darüber.
   - Admins legen dort auch Aliase von Hand an und löschen sie (#270). Ein Alias ist innerhalb des Typs eindeutig und nicht der Name eines anderen Elements; die Eingabefelder schlagen das Element auch über seine Aliase vor.
-  - Sie haben Übersetzungen je Sprache wie Skills (#291), auch Firmen; ein View-Profil mit Sprache zeigt sie, der Report verwendet sie.
+  - Sie haben Übersetzungen je Sprache wie Skills (#291), auch Firmen; ein Profilauszug mit Sprache zeigt sie, der Report verwendet sie.
 - **Konsequenzen:**
-  - Stammdaten lassen sich pflegen, ohne Profile oder View-Profile zu brechen.
+  - Stammdaten lassen sich pflegen, ohne Profile oder Profilauszüge zu brechen.
   - Danach muss die Statistik neu geladen werden.
 
 ## ADR-20: Berater löschen über Services ohne verteilte Transaktion
 
 - **Status:** gilt (#240, #243)
-- **Kontext:** Ein gelöschter Berater hinterließ View-Profile, Dokumente und sein Bild; die Statistik zeigte ihn weiter.
+- **Kontext:** Ein gelöschter Berater hinterließ Profilauszüge, Dokumente und sein Bild; die Statistik zeigte ihn weiter.
 - **Entscheidung:**
   - Nur inaktive Berater lassen sich löschen.
-  - Erst die View-Profile (View-Profile Service) und die Dokumente (Report Service), dann in einer Transaktion alles im Profile Service, danach das Neuladen der Statistik.
+  - Erst die Profilauszüge (View-Profile Service) und die Dokumente (Report Service), dann in einer Transaktion alles im Profile Service, danach das Neuladen der Statistik.
   - Scheitert ein anderer Service, bleibt der Berater (`502`), und erneutes Löschen löscht den Rest.
 - **Konsequenzen:**
   - Kein Zwei-Phasen-Commit nötig.
@@ -295,7 +300,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Kann er sie nicht fragen, meldet er einen Fehler statt Treffern.
   - Bereinigen wirkt nur auf das, was beim Ausführen noch zutrifft, und loggt es.
   - Regel: Neue Verweise über Service-Grenzen oder neue nicht transaktionale Löschvorgänge bringen eine Prüfung mit.
-  - Das Housekeeping pflegt das ganze System (#288). Neben den Datenleichen hat es die Rubrik *Unbenutzt* für gültige Einträge, die niemand mehr nutzt: Profil-Elemente je Typ (Profile Service) und eigene Skills in der Kategorie *Other* (Skill Service, der die Nutzung beim Profile Service liest). Löschen ist dort eine Pflegeentscheidung, keine Reparatur. Die Rubrik *Alt* (#289) bietet alte Exportdokumente und View-Profile an; das jüngste je Berater bleibt, Berater werden nicht gefragt.
+  - Das Housekeeping pflegt das ganze System (#288). Neben den Datenleichen hat es die Rubrik *Unbenutzt* für gültige Einträge, die niemand mehr nutzt: Profil-Elemente je Typ (Profile Service) und eigene Skills in der Kategorie *Other* (Skill Service, der die Nutzung beim Profile Service liest). Löschen ist dort eine Pflegeentscheidung, keine Reparatur. Die Rubrik *Alt* (#289) bietet alte Exportdokumente und Profilauszüge an; das jüngste Dokument und der zuletzt benutzte Profilauszug je Berater bleiben, Berater werden nicht gefragt.
 - **Konsequenzen:**
   - Die Verantwortung bleibt beim Besitzer der Daten.
   - Das Bereinigen ist ein bewusster Schritt eines Admins und geschieht nicht automatisch.
@@ -303,6 +308,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 ## ADR-22: Löschen in der Oberfläche absichern
 
 - **Status:** gilt (#134, #181)
+- **Kontext:** Löschen im Admin-Bereich fragte nur einmal nach, meist ohne zu sagen, was gelöscht wird (#181), und die Dialoge sahen verschieden aus (#134). Gelöscht werden dort Stammdaten, die alle Profile betreffen.
 - **Entscheidung:**
   - Jedes Löschen fragt nach (`makeDeferrable` mit eigener Aktion).
   - Im Admin-Bereich wird der Name zweimal eingegeben, beim Berater das Kürzel. Nur das Bereinigen im Housekeeping behält die einfache Rückfrage.
@@ -311,6 +317,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 ## ADR-23: Webclient mit Laufzeitkonfiguration und gehashten Dateien
 
 - **Status:** gilt (#9, #10, #109)
+- **Kontext:** Nach einem Update blieb der Webclient für manche Nutzer weiß, bis der Browser neu lud, weil nginx keine Cache-Header setzte (#9). Ein Teil der statischen Dateien hatte keinen Hash im Namen (#10). Auf dem iPhone erschienen Icons als Text, weil die Icon-Schrift von Google geladen wurde (#109).
 - **Entscheidung:**
   - **Ein Image für alle Umgebungen:** Die Service-URLs und die IDs der Anmeldung setzt `configure_api.sh` beim Start in `config.js` ein.
   - **Caching:** Statische Dateien tragen einen Hash im Namen und sind `immutable`, alles andere `no-cache`. Fehlt eine Datei, antwortet nginx mit 404 statt mit `index.html`.
@@ -356,3 +363,41 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 - **Konsequenzen:**
   - Weniger Code, und keine Tabellen mehr, die bei jedem Löschen mitzupflegen sind (`drop-admin-notifications.sql` löscht sie).
   - Wer über Neues benachrichtigt werden will, braucht einen neuen Entwurf, z. B. eine Liste „Neu seit …“, keinen Posteingang.
+
+## ADR-26: Wissensbasis aus öffentlicher Doku und privatem Sidecar
+
+- **Status:** vorgeschlagen (Hackathon, [HBTGmbH/hbt-power-hack26#2](https://github.com/HBTGmbH/hbt-power-hack26/issues/2))
+- **Kontext:**
+  - Agenten arbeiten im Projekt mit `AGENTS.md` und arc42, kennen aber die internen fachlichen Prozesse nicht. Diese dürfen nicht ins Repository, weil es öffentlich ist.
+  - Das Wissen soll ohne Zutun genutzt werden, in jedem Projekt funktionieren und für Leser aus Wirtschaft, Fachlichkeit und Technik lesbar bleiben.
+- **Entscheidung:**
+  - Ein projektneutrales Werkzeug ([`HBTGmbH/hbt-leviathan-hack26`](https://github.com/HBTGmbH/hbt-leviathan-hack26), Node, ohne Abhängigkeiten) indiziert die öffentliche Doku nach [`knowledge.json`](../../knowledge.json) und private Wissensquellen, getrennt nach Leserkreis in eigenen Repositories: ein **Projekt-Sidecar** je Projekt (nur Projektmitglieder) und ein **HBT-weites Wissen** für alle Projekte (alle Mitarbeiter). Sie liegen per Konvention neben dem Projekt oder sind lokal konfiguriert, nie als Submodule und ohne Namen im öffentlichen Repository.
+  - Das Werkzeug ist von den Inhalten getrennt und kommt als Claude-Code-Plugin `knowledge@hbt-leviathan` aus dem eigenen Repository, das zugleich sein Marketplace ist. `.claude/settings.json` trägt den Marketplace ein und schaltet das Plugin ein; im Projekt liegen nur Inhalte. Ein Update des Werkzeugs gilt so für alle Projekte (#8).
+  - Agenten bekommen das Wissen über die Hooks des Plugins (Inhaltsverzeichnis beim Start, passende Abschnitte zu jeder Frage), seinen MCP-Server `knowledge` und seine Skills. Andere Agenten als Claude Code bekommen den MCP-Server und die Regeln in `AGENTS.md`, aber keine Hooks.
+  - Inhalte bleiben Markdown; Seiten nennen Zielgruppe und beginnen mit „Kurz gesagt“. arc42 bleibt die Quelle für die Architektur.
+  - Entscheidungen sind eigene Wissenseinheiten: Die ADRs dieses Kapitels und interne Entscheidungen im Sidecar (`ADR-Inn`) bilden ein gemeinsames Register mit Status, Nachfolger und Issues (`kb decisions`, `kb decide`). `kb audit` prüft Übersicht, Status, Nummern und Nachfolger.
+  - Das Glossar ist die verbindliche Domänensprache: ein Begriff je Sache, jeder Begriff eine eigene Notiz. Agenten bekommen sie im Session-Kontext; `kb audit` meldet Abweichungen in Doku und Oberflächentexten.
+  - Das Wissen ist Markdown für Obsidian. In den privaten Quellen verknüpfen Obsidian-Links (`[[…]]`) Seiten, Begriffe und Entscheidungen; im Code-Repo bleiben es normale Markdown-Links, weil GitHub `[[…]]` nicht darstellt. Die privaten Repos sind Module eines gemeinsamen Vaults; jeder klont nur die Module, die er lesen darf. Verknüpfungen gehen nur in Richtung gleicher oder größerer Leserkreis.
+  - Ein PreToolUse-Hook und `kb check` verhindern, dass Sätze oder sensible Begriffe aus dem Sidecar in Commits, Issues, PRs oder öffentliche Dateien gelangen.
+  - Ein wöchentlicher Lauf gleicht Doku und Code ab und hält neue Entscheidungen als ADR fest. Seine Änderungen am Projekt kommen erst nach Freigabe durch einen Menschen als PR. Er ändert nur Markdown; was im Code nicht stimmt, bekommen die Entwickler als Hinweis beim Start einer Session ([Werkzeug-README](https://github.com/HBTGmbH/hbt-leviathan-hack26#wöchentliche-konsolidierung)).
+- **Konsequenzen:**
+  - Ohne Sidecar funktioniert alles mit dem öffentlichen Wissen; das Repository nennt ihn nicht beim Namen.
+  - Der Leak-Schutz erkennt wörtliche Übernahmen und gelistete Begriffe, keine Umschreibungen; dafür bleibt die Regel in `AGENTS.md`.
+  - Der Leak-Schutz gilt zwischen allen Leserkreisen: Projektwissen nicht ins HBT-weite Wissen, beides nicht ins öffentliche Projekt.
+  - Der Lauf läuft nicht im öffentlichen Repository, weil seine Logs internes Wissen enthalten.
+
+## ADR-27: Deutsche Domänensprache mit verbindlichem Glossar
+
+- **Status:** gilt (seit 2026-11-09, [HBTGmbH/hbt-power-hack26#2](https://github.com/HBTGmbH/hbt-power-hack26/issues/2))
+- **Kontext:**
+  - Doku, Oberfläche und Gespräche mit Agenten benutzten für dieselbe Sache verschiedene Wörter, oft gemischt deutsch und englisch: *View-Profil* und *Viewprofil*, *Template* neben *Vorlage*, *Mitarbeiter* neben *Berater*.
+  - Agenten übernehmen, was sie lesen. Ohne verbindliche Begriffe verbreiten sie die Mischung weiter.
+- **Entscheidung:**
+  - Die Domänensprache ist deutsch. Das [Glossar](12-glossar.md) ist verbindlich: ein Begriff je Sache, jeder Begriff eine eigene Notiz in `docs/glossar/` mit den Namen im Code (`code`) und den ersetzten Wörtern (`nicht-verwenden`).
+  - Technische Eigennamen bleiben, z. B. Edge, Ingress, BIRT, Entra ID und die Namen der Services (*View-Profile Service*). Die Namen im Code bleiben ebenfalls (`ViewProfile`).
+  - Festgelegt: *Profilauszug* statt *View-Profil*, *Vorlage* statt *Template*, *Berater* statt *Mitarbeiter*, wo Profile gemeint sind (Berater ist spezifischer; *Mitarbeiter* bleibt der Begriff für alle Angestellten der HBT).
+  - Weitere englische Fachbegriffe (*Skill*, *Housekeeping*, *Report Manager* …) stehen mit Vorschlägen unter „Offene Begriffe“ im Glossar und werden einzeln entschieden.
+- **Konsequenzen:**
+  - Doku und Oberflächentexte (`de-DE.json`) sind auf die festgelegten Begriffe umgestellt. Code, API und gespeicherte Daten behalten ihre Namen.
+  - `audit` (MCP-Server `knowledge`) meldet ersetzte Wörter in deutscher Doku und in den Oberflächentexten, der wöchentliche Lauf korrigiert sie.
+  - Neue Begriffe kommen ins Glossar, bevor sie benutzt werden.

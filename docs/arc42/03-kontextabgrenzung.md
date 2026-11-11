@@ -11,7 +11,7 @@ flowchart LR
 
     P[[HBT Power]]
 
-    B -- "Profil, View-Profile, Exporte" --> P
+    B -- "Profil, Profilauszüge, Exporte" --> P
     A -- "Berater, Skill-Baum, Profil-Elemente,<br/>Vorlagen, Housekeeping" --> P
     P -- "Profil, Statistik, Profilprüfung" --> B
     P -- "DOCX, PDF-Vorschau" --> A
@@ -23,7 +23,7 @@ flowchart LR
 
 | Partner | Eingabe an HBT Power | Ausgabe von HBT Power |
 |---|---|---|
-| **Berater** | Das eigene Profil, View-Profile und Exportwünsche | Profil, Profilprüfung, Statistik, Word-Dokument, PDF-Vorschau |
+| **Berater** | Das eigene Profil, Profilauszüge und Exportwünsche | Profil, Profilprüfung, Statistik, Word-Dokument, PDF-Vorschau |
 | **Admin** | Berater, Skill-Baum, Profil-Elemente, Vorlagen (BIRT-Designs), Entscheidungen zu Datenleichen | Profile und Exporte aller Berater, wer was benutzt, Statistik, Housekeeping-Befunde |
 | **Empfänger** | – | Das Dokument; Power selbst sieht er nicht. |
 | **Microsoft Entra ID** | Konten, App-Rollen `Power.User` und `Power.Admin`, Claims (`mailnickname` = Kürzel) | Anmeldeanfragen |

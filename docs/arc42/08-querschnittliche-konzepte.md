@@ -34,15 +34,15 @@ flowchart LR
   - Ein Akteur (Ersteller, Exporteur, Bestätiger) kommt nie aus Body, Pfad oder Query.
   - Ruft ein Service einen anderen im Auftrag des Benutzers, gibt er die Header weiter (Export, #214).
   - Kürzel im Pfad sagen nur, um welches Profil es geht.
-- **Nur eigene Daten** (#255): Ein `Power.User` liest und ändert nur die Daten zu seinem Kürzel, ein `Power.Admin` alle. Die Profile der Kollegen liest jeder Berater mit, nur lesend und ohne Geburtsdatum (#350); Pflegehinweise (Profilcheck), View-Profile, Exportdokumente und Profilstatistik bleiben beim Berater. Profile, Report, View-Profile und Statistics Service prüfen das selbst (`security/ConsultantAccess`):
+- **Nur eigene Daten** (#255): Ein `Power.User` liest und ändert nur die Daten zu seinem Kürzel, ein `Power.Admin` alle. Die Profile der Kollegen liest jeder Berater mit, nur lesend und ohne Geburtsdatum (#350); Pflegehinweise (Profilcheck), Profilauszüge, Exportdokumente und Profilstatistik bleiben beim Berater. Profile Service, Report Service, View-Profile Service und Statistics Service prüfen das selbst (`security/ConsultantAccess`):
   - Ein Interceptor vergleicht die Pfadvariable `{initials}` jedes Endpunkts mit `X-Pwr-User-Initials`, ohne Groß-/Kleinschreibung. Ausgenommen sind nur Endpunkte des Profile Service, die ausdrücklich mit `@ReadableByColleagues` markiert sind (die GETs von Berater, Profil und Profilbild), und das nur für eine Anfrage mit Kürzel; ein neuer Endpunkt bleibt ohne Markierung beim Berater. Profilbilder lesen Kollegen nur von aktiven Beratern (#350).
-  - Was über eine ID geladen wird (Dokument, Profilbild, View-Profil), prüft der Endpunkt am Besitzer.
-  - Dokumente entstehen nur über den View-Profile Service (#262): Er lädt das View-Profil über seine ID und prüft den Besitzer. `POST /report` und `/report/preview` des Report Service weisen jede Anfrage über die Edge ab, auch eines Admins, und ebenso ein View-Profil, dessen Besitzer nicht zu den Kürzeln im Body passt.
+  - Was über eine ID geladen wird (Dokument, Profilbild, Profilauszug), prüft der Endpunkt am Besitzer.
+  - Dokumente entstehen nur über den View-Profile Service (#262): Er lädt den Profilauszug über seine ID und prüft den Besitzer. `POST /report` und `/report/preview` des Report Service weisen jede Anfrage über die Edge ab, auch eines Admins, und ebenso ein Profilauszug, dessen Besitzer nicht zu den Kürzeln im Body passt.
   - Ein ganzes Profil wird nur gelesen (`GET /profiles/{initials}`), nie aus einem Body ersetzt (#261).
   - Eine Anfrage ohne `X-Pwr-User-Admin` kam nicht über die Edge (Aufruf eines anderen Service, lokal) und darf alles.
   - Eine ID im Body muss zum Profil im Pfad gehören, auch für Admins.
   - Für alle offen bleiben nach Entscheidung: Beratersuche, Namensliste, Cluster-Info und Angaben ohne Personenbezug. Personenbezogenes über andere, das nur der Admin-Bereich braucht, liegt unter `/admin`.
-  - Der Webclient öffnet einem Benutzer fremde Profile nur zum Lesen (`OIDCService.mayEditProfile`, #350): ohne Bedienelemente zum Ändern, ohne Übersicht, View-Profile und Dokumente des Kollegen; er lädt dafür auch nichts davon. Einstieg ist die Seite *Kollegen* und die Namen in Beratersuche und Cluster-Info.
+  - Der Webclient öffnet einem Benutzer fremde Profile nur zum Lesen (`OIDCService.mayEditProfile`, #350): ohne Bedienelemente zum Ändern, ohne Übersicht, Profilauszüge und Dokumente des Kollegen; er lädt dafür auch nichts davon. Einstieg ist die Seite *Kollegen* und die Namen in Beratersuche und Cluster-Info.
 - **Binärdaten** (Profilbilder, Vorschauen) lädt der Webclient mit Token als Blob. Profilbilder dürfen privat lange gecacht werden (`Cache-Control: private, max-age=365d, immutable`, #67).
 - **Datensparsamkeit:** `GET /consultants/names` gibt allen Benutzern nur Kürzel, Kurz- und vollen Namen und ob der Berater aktiv ist (#216, #350). `GET /consultants/{initials}` nennt das Geburtsdatum nur dem Berater selbst und Admins (#350).
 - **Lokal** gibt es keine Edge und keine Anmeldung: Man ist Admin, die Header fehlen (z. B. bleibt „Exportiert von“ leer). Mit `REACT_APP_LOCAL_USER=<kürzel>` ist man ein Benutzer ohne Admin-Rolle; der Dev-Server setzt dann die Header wie die Edge, und die Services prüfen wie in Produktion (#350).
@@ -53,7 +53,7 @@ flowchart LR
 | Service | Speicher | Schema / Modell |
 |---|---|---|
 | Profile, Skill, Report | MariaDB, eine Datenbank je Service | JPA/Hibernate. Das Schema legt Hibernate an (`ddl-auto: update`, auch in der Produktion seit #27). |
-| View-Profile, Statistics | Redis, eine logische Datenbank je Service | Spring Data Redis, ein Objekt als Hash mit einem Eintrag je Feld |
+| View-Profile Service, Statistics | Redis, eine logische Datenbank je Service | Spring Data Redis, ein Objekt als Hash mit einem Eintrag je Feld |
 | Skill | zusätzlich Lucene-Index im Dateisystem | Hibernate Search, bei jedem Start neu aufgebaut |
 
 - **Kein Migrationswerkzeug:** Hibernate fügt Tabellen und Spalten hinzu. Umbenennen, Löschen, Typänderungen und Datenmigration brauchen ein SQL-Skript im Ordner des Service (z. B. `pwr-profile-service/fix-id-columns.sql`). Das Skript steht im PR unter *Operations / Deployment Notes* und läuft vor dem Merge ([ADR-08](09-architekturentscheidungen.md#adr-08-schema-mit-hibernate-ddl-auto-update-ohne-migrationswerkzeug)).
@@ -72,7 +72,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     subgraph Verweise[Verweise ohne Fremdschlüssel]
-        VP["View-Profil.ownerInitials"] -.-> C[Berater.initials]
+        VP["ViewProfileInfo.ownerInitials"] -.-> C[Berater.initials]
         RD["ReportData.initials"] -.-> C
         T["ReportTemplate.fileId"] -.-> F["DBFile.id"]
         C2["Berater.profilePictureId"] -.-> PIC["ProfilePicture.id"]
@@ -87,12 +87,12 @@ flowchart LR
   - Innerhalb des Profile Service entstehen keine mehr (#254): Einträge löscht `orphanRemoval`, Projekte `deleteProject`, Skills `SkillRows`, sobald weder Profil noch Projekt sie hält. `NoLeftoversITest` prüft jeden Weg gegen die Housekeeping-Prüfungen. Was das Housekeeping dort noch findet, sind Altdaten.
   - Andere Services fragt er nur nach Daten. Fällt einer aus, gibt es einen Fehler statt Treffern.
   - **Regel:** Wer neue Verweise über Service-Grenzen oder neue nicht transaktionale Löschvorgänge einführt, ergänzt eine Prüfung.
-  - **Rubrik *Alt*** (#289): Daten, die wahrscheinlich niemand mehr braucht. Der Report Service meldet Exportdokumente älter als `pwr.housekeeping.old-reports-after` (730 Tage) mit ihrem Speicherplatz, der View-Profile Service View-Profile, die so lange weder geändert noch exportiert wurden (`pwr.housekeeping.old-view-profiles-after`, `viewProfileInfo.lastUsed`). Das jüngste Dokument und das zuletzt benutzte View-Profil jedes Beraters bleiben immer; Berater werden nicht gefragt. View-Profile von vor #289 zählen als benutzt am Tag der Einführung, damit ein altes, kürzlich exportiertes View-Profil nicht als alt gilt.
+  - **Rubrik *Alt*** (#289): Daten, die wahrscheinlich niemand mehr braucht. Der Report Service meldet Exportdokumente älter als `pwr.housekeeping.old-reports-after` (730 Tage) mit ihrem Speicherplatz, der View-Profile Service Profilauszüge, die so lange weder geändert noch exportiert wurden (`pwr.housekeeping.old-view-profiles-after`, `viewProfileInfo.lastUsed`). Das jüngste Dokument und der zuletzt benutzte Profilauszug jedes Beraters bleiben immer; Berater werden nicht gefragt. Profilauszüge von vor #289 zählen als benutzt am Tag der Einführung, damit ein alter, kürzlich exportierter Profilauszug nicht als alt gilt.
   - **Rubrik *Unbenutzt*** (#288): gültige Einträge, die niemand mehr nutzt. Profil-Elemente je Typ meldet der Profile Service (`GET /admin/housekeeping/unused`), gelöscht wird über den Dialog mit allen Namen (`DELETE /admin/name-entities/unused?type=`). Eigene Skills, also die in der Kategorie *Other*, in die ein unbekannter getippter Skill kommt, deren Name und Aliase kein Profil nutzt, meldet und löscht der Skill Service (`/admin/housekeeping/unused`). Die Nutzung liest er beim Profile Service (`GET /admin/skills/usage`); eine leere Antwort ist ein Fehler. Skills anderer Kategorien zählen nie dazu, auch nicht nach dem Verschieben aus *Other*. Das Kennzeichen `custom` sagt nichts, auch Skills, die ein Admin im Baum anlegt, tragen es (#297). Die Zahlen passen zu den Nutzerzahlen der Listen (#271): unbenutzt ist, was dort `0` zeigt.
 - **Abgeleitete Daten:** Die Statistik hält eine Kopie und lädt sie stündlich und nach Massenänderungen neu ([6.5](06-laufzeitsicht.md#65-statistik-aktuell-halten)). Der Webclient verwirft danach seine zwischengespeicherten Nutzungsangaben.
 - **Nutzungszahlen der Profil-Elemente** (#271): Die Listen im Admin-Bereich zeigen je Element und je Skill, wie viele Berater es nutzen. Die Zahlen kommen aus der Datenbank des Profile Service (`GET /admin/name-entities/usage?type=`, `GET /admin/skills/usage`), gezählt wie „unbenutzte löschen“. Die Info-Box daneben nennt die Nutzer weiter aus der Kopie der Statistik. Nach Änderungen einzelner Profile kann sie bis zu einer Stunde hinter der Zahl in der Liste zurückliegen; nach Massenänderungen lädt die Statistik sofort neu.
-- **Momentaufnahmen:** View-Profile ändern sich nicht mit dem Profil. *Aktualisieren* übernimmt Änderungen bewusst (#230).
-- **Interner Vermerk** (#336): Eine Projektreferenz hat einen Vermerk nur für HBT. Er bleibt im Profile Service; View-Profile, Export und Statistik übernehmen ihn nicht, ihre Modelle kennen das Feld nicht. Im Projektformular ist er zugeklappt.
+- **Momentaufnahmen:** Profilauszüge ändern sich nicht mit dem Profil. *Aktualisieren* übernimmt Änderungen bewusst (#230).
+- **Interner Vermerk** (#336): Eine Projektreferenz hat einen Vermerk nur für HBT. Er bleibt im Profile Service; Profilauszüge, Export und Statistik übernehmen ihn nicht, ihre Modelle kennen das Feld nicht. Im Projektformular ist er zugeklappt.
 
 ## 8.4 Kommunikation zwischen Services
 
@@ -108,7 +108,7 @@ flowchart LR
   | Housekeeping | Fehler statt Treffern |
 
 - **Timeouts** (#249): Jeder Aufruf hat einen Verbindungs-Timeout (2 s) und einen Lese-Timeout (10 s); Aufrufe, die bekanntlich länger dauern, 60 s:
-  - die PDF-Vorschau und das Hochladen einer Vorlagen-Datei (View-Profile → Report)
+  - die PDF-Vorschau und das Hochladen einer Vorlagen-Datei (View-Profile Service → Report Service)
   - das Laden aller Berater (Statistics → Profile)
   - das Neuladen der Statistik (Profile → Statistics)
 
@@ -119,7 +119,7 @@ flowchart LR
 - **Groß-/Kleinschreibung:** Die Kollation der MariaDB ignoriert Groß-/Kleinschreibung und Akzente. Namensvergleiche in Java, die dasselbe entscheiden, nutzen `equalsIgnoreCase` (#207).
 - **Skill-Namen** stehen für den Namen im Skill-Baum, auch als Alias oder in anderer Schreibweise (#208).
   - Beim Speichern wird nur die Schreibweise des Baums übernommen; Aliase bleiben, wie getippt.
-  - Statistik, View-Profile und Admin-Listen zeigen den Namen des Baums.
+  - Statistik, Profilauszüge und Admin-Listen zeigen den Namen des Baums.
 - **Profil-Elemente:**
   - Sie werden ohne Leerzeichen an den Enden gespeichert; ein leerer Name wird abgelehnt (#215).
   - Umbenannte und zusammengeführte Elemente behalten ihre früheren Namen. Wer einen früheren Namen tippt, bekommt das Element (#227).
@@ -129,8 +129,8 @@ flowchart LR
 ## 8.6 Lokalisierung und Datum
 
 - **Oberfläche:** nur Deutsch. Texte laufen über `PowerLocalize.get`; die Schlüssel stehen in `src/localization/de-DE.json`. Ein fehlender Schlüssel erscheint als `<schlüssel>_NO_LOCALE`.
-- **Skills und Kategorien:** Sie lassen sich übersetzen (ISO 639-2, `LocalizedQualifier`). Die Übersetzung erscheint nur in einem View-Profil mit gewählter Sprache, auf seiner Seite neben dem Namen und im Dokument statt des Namens (#174). Der Name des Baums bleibt überall der Schlüssel.
-- **Profil-Elemente** (#291): Branchen, Sprachen, Rollen, Firmen und alle anderen Typen haben ebenso Übersetzungen je Sprache (`name_entity_localization`, Profile Service, gepflegt im Infokasten des Elements). Der View-Profile Service holt sie beim Anlegen, *Aktualisieren* und Setzen der Sprache (`GET /admin/name-entities/localizations?language=`) und legt sie als `localizedName` an die Einträge, bei Projekten als `localizedClient`/`localizedBroker`. Er findet sie über Typ und Namen ohne Groß-/Kleinschreibung. Antwortet der Profile Service nicht, bleibt das View-Profil ohne Übersetzung. Zusammenführen übernimmt die Übersetzungen der Quelle für Sprachen, die dem Ziel fehlen; Löschen nimmt sie mit.
+- **Skills und Kategorien:** Sie lassen sich übersetzen (ISO 639-2, `LocalizedQualifier`). Die Übersetzung erscheint nur in einem Profilauszug mit gewählter Sprache, auf seiner Seite neben dem Namen und im Dokument statt des Namens (#174). Der Name des Baums bleibt überall der Schlüssel.
+- **Profil-Elemente** (#291): Branchen, Sprachen, Rollen, Firmen und alle anderen Typen haben ebenso Übersetzungen je Sprache (`name_entity_localization`, Profile Service, gepflegt im Infokasten des Elements). Der View-Profile Service holt sie beim Anlegen, *Aktualisieren* und Setzen der Sprache (`GET /admin/name-entities/localizations?language=`) und legt sie als `localizedName` an die Einträge, bei Projekten als `localizedClient`/`localizedBroker`. Er findet sie über Typ und Namen ohne Groß-/Kleinschreibung. Antwortet der Profile Service nicht, bleibt der Profilauszug ohne Übersetzung. Zusammenführen übernimmt die Übersetzungen der Quelle für Sprachen, die dem Ziel fehlen; Löschen nimmt sie mit.
 - **Datum ohne Uhrzeit:** `LocalDate` bleibt im Webclient der String `"YYYY-MM-DD"`. Nur `PwrDatePicker` wandelt in `Date` und zurück; das verhindert Verschiebungen um einen Tag (#24, #26). Zeitstempel sind `Date`.
 
 ## 8.7 Fehlerbehandlung, Logging, Überwachung
@@ -140,7 +140,7 @@ flowchart LR
   | Service | Format |
   |---|---|
   | Profile | `{timestamp, status, error, message, path}` |
-  | View-Profile | `{error: {code, message, …}}` (#221) |
+  | View-Profile Service | `{error: {code, message, …}}` (#221) |
   | Skill | `{id, errorType, message}` |
   | Report | `422` mit Text bei nicht renderbarer Vorlage |
   | Statistics, Edge | Standard von Spring Boot |
@@ -149,7 +149,7 @@ flowchart LR
   - `getQuietly`, `getOrNull` und `…Expecting` sind Varianten für erwartete oder stille Fälle.
   - Jede Anfrage zählt, solange sie läuft; ein schmaler Balken an der App-Bar zeigt es auf allen Seiten (`PwrRequestProgress`, #320), einen Spinner in der Bildmitte gibt es nicht.
   - Der Zustand ändert sich erst mit der Antwort des Servers; nach einem Fehler bleibt er, wie er war, und es gibt genau eine Meldung. Kleine Speichervorgänge melden keinen Erfolg.
-  - Änderungen ohne Formular, die sofort speichern (Bewertung, Ein-/Ausblenden und Sortieren im View-Profil), gehen je Skill bzw. je View-Profil der Reihe nach an den Server (`saveInOrder`); von mehreren wartenden Änderungen am selben Eintrag wird nur die letzte gesendet.
+  - Änderungen ohne Formular, die sofort speichern (Bewertung, Ein-/Ausblenden und Sortieren im Profilauszug), gehen je Skill bzw. je Profilauszug der Reihe nach an den Server (`saveInOrder`); von mehreren wartenden Änderungen am selben Eintrag wird nur die letzte gesendet.
 - **Logging:** Standard von Spring Boot, in der Produktion als Container-Log mit Rotation. Bereinigungen und Massenänderungen loggen, was sie getan haben (Anzahl und IDs).
 - **Überwachung:** Jeder Service veröffentlicht nur `health` und `info` (`/actuator/info` mit `git.commit`, `git-commit-id-plugin`). Ein Monitoring außerhalb davon gibt es im Repository nicht.
 
@@ -179,7 +179,7 @@ flowchart LR
   |---|---|
   | Profile, Skill | H2, JUnit 4, MockMvc |
   | Report | H2, JUnit 5; BIRT-Rendering mit Zeitlimit |
-  | View-Profile | eingebettetes Redis, JUnit 4 |
+  | View-Profile Service | eingebettetes Redis, JUnit 4 |
   | Statistics | Mockito, JUnit 5 |
   | Edge | `WebTestClient` mit JWT-Mock, JUnit 5 |
   | Webclient | keine Tests |
