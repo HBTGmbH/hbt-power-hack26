@@ -113,12 +113,12 @@ flowchart LR
 | Baustein | Artefakt | Image (Basis) | Laufzeit |
 |---|---|---|---|
 | pwr-webclient | `build/` (CRA) | `nginx:alpine` | Container `pwr-webclient` |
-| pwr-edge-service | `target/*.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9000 |
-| pwr-profile-service | `target/*.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9004 |
-| pwr-skill-service | `target/*.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9003, Volume `/lucene-data` |
-| pwr-report-service | `target/*.jar` | `azul/zulu-openjdk-alpine:13-jre` mit fontconfig, DejaVu, Noto Sans (Ersatzschrift) | Container, Port 9005, `/fonts` nur lesend |
-| pwr-view-profile-service | `target/*.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9008 |
-| pwr-statistics-service | `target/*.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9007 |
+| pwr-edge-service | `target/pwr-edge-service.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9000 |
+| pwr-profile-service | `target/pwr-profile-service.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9004 |
+| pwr-skill-service | `target/pwr-skill-service.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9003, Volume `/lucene-data` |
+| pwr-report-service | `target/pwr-report-service.jar` | `azul/zulu-openjdk-alpine:13-jre` mit fontconfig, DejaVu, Noto Sans (Ersatzschrift) | Container, Port 9005, `/fonts` nur lesend |
+| pwr-view-profile-service | `target/pwr-view-profile-service.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9008 |
+| pwr-statistics-service | `target/pwr-statistics-service.jar` | `azul/zulu-openjdk-alpine:13-jre` | Container, Port 9007 |
 
 ## 7.5 Speicher der Java-Services
 

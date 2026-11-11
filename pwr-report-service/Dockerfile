@@ -10,7 +10,7 @@ COPY --from=fallback-fonts /usr/share/fonts/noto/NotoSans-Light.ttf /usr/share/f
      /usr/share/fonts/noto/NotoSans-Medium.ttf /usr/share/fonts/noto/NotoSans-Bold.ttf /usr/share/fonts/pwr-fallback/
 # Simplon Norm is licensed and never part of the image: mount a directory with its font files at /fonts
 # (export.font-directory); without it, PDFs use the fonts above
-COPY target/pwr-report-service-*.jar pwr-report-service.jar
+COPY target/pwr-report-service.jar pwr-report-service.jar
 ENV LC_ALL de_DE.UTF-8
 ENV LANG de_DE.UTF-8
 ENV LANGUAGE de_DE.UTF-8

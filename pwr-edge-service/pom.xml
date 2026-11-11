@@ -6,25 +6,24 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.11</version>
+		<version>2.7.18</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 
 	<groupId>de.hbt.pwr</groupId>
 	<artifactId>pwr-edge-service</artifactId>
+	<!-- Means nothing: a build is identified by its commit (#77) -->
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>pwr-edge-service</name>
-	<description>HBT Power Microservice Enviroment Edge Server</description>
+	<description>HBT Power Microservice Environment Edge Server</description>
 
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>13</java.version>
-		<spring.cloud.version>2021.0.7</spring.cloud.version>
+		<spring.cloud.version>2021.0.9</spring.cloud.version>
 	</properties>
 
 	<dependencies>
@@ -83,24 +82,27 @@
 	</dependencyManagement>
 
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>build-info</goal>
-						</goals>
-					</execution>
-				</executions>
+				<!-- Lombok only compiles, it has no place in the jar -->
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<!-- Commit of the build in git.properties; GET /actuator/info shows it (git.commit.id, git.commit.time).
 				 Same plugin as in Salat. Only branch, commit id and time: no names or e-mail addresses of committers. -->
 			<plugin>
-				<groupId>pl.project13.maven</groupId>
-				<artifactId>git-commit-id-plugin</artifactId>
-				<version>4.9.10</version>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<version>9.2.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -124,17 +126,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<repositories>
-		<repository>
-			<id>spring-milestones</id>
-			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/milestone</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
 
 
 </project>

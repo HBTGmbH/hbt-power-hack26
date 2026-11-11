@@ -52,7 +52,7 @@ jobs:
           cache-dependency-path: pwr-report-service/pom.xml
 
       - name: Build and test with Maven
-        run: mvn -B package
+        run: ./mvnw -B package
 
       # Only checks that the image builds; images are published from main
       - name: Build image
@@ -83,7 +83,7 @@ jobs:
           java-version: '13'
 
       - name: Build and test with Maven
-        run: mvn -B package
+        run: ./mvnw -B package
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
         with:

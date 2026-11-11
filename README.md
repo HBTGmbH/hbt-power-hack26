@@ -154,7 +154,7 @@ locally, start the report service with the directory that holds the `.otf`/`.ttf
 read, not its subdirectories):
 
 ```shell
-java -jar target/pwr-report-service-*.jar --spring.profiles.active=localDev \
+java -jar target/pwr-report-service.jar --spring.profiles.active=localDev \
   "--export.font-directory=/path/to/Simplon Norm HBT"
 ```
 

@@ -76,12 +76,13 @@ class SecurityConfigTest {
     }
 
     @Test
-    void appInfoOfTheEdgeShowsVersionAndCommitButNoCommitter() {
+    void appInfoOfTheEdgeShowsCommitButNoCommitterAndNoVersion() {
         webTestClient.mutateWith(mockJwt().authorities(new SimpleGrantedAuthority("Power.User")))
                 .get().uri("/pwr-edge-service/actuator/info").exchange()
                 .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.build.version").exists()
+                // the version in the POM means nothing (#77), so there is no build-info
+                .jsonPath("$.build").doesNotExist()
                 .jsonPath("$.git.commit.id").exists()
                 .jsonPath("$.git.commit.time").exists()
                 .jsonPath("$.git.commit.user").doesNotExist();

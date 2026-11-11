@@ -3,9 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.hbt.power</groupId>
+    <groupId>de.hbt.pwr</groupId>
     <artifactId>pwr-skill-service</artifactId>
-    <version>1.3.1</version>
+    <!-- Means nothing: a build is identified by its commit (#77) -->
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>pwr-skill-service</name>
@@ -37,10 +38,7 @@
     </developers>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>13</java.version>
-        <spring-boot.version>2.2.0.RELEASE</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -80,8 +78,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.6</version>
-            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -97,38 +94,31 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hibernate5</artifactId>
-            <version>2.10.1</version>
         </dependency>
 
     </dependencies>
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build-info</goal>
-                        </goals>
-                        <configuration>
-                            <additionalProperties>
-                                <encoding.source>UTF-8</encoding.source>
-                                <encoding.reporting>UTF-8</encoding.reporting>
-                                <java.source>${maven.compiler.source}</java.source>
-                                <java.target>${maven.compiler.target}</java.target>
-                            </additionalProperties>
-                        </configuration>
-                    </execution>
-                </executions>
+                <!-- Lombok only compiles, it has no place in the jar -->
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
             <!-- Commit of the build in git.properties; GET /actuator/info shows it (git.commit.id, git.commit.time).
                  Same plugin as in Salat. Only branch, commit id and time: no names or e-mail addresses of committers. -->
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>4.9.10</version>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>9.2.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -150,14 +140,6 @@
                     </includeOnlyProperties>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>13</source>
-                    <target>13</target>
-                </configuration>
-            </plugin>
             <!--
             Inserts the sample skill tree into the local database (root docker-compose.yaml): `mvn sql:execute`, or
             Plugins → sql → sql:execute in IntelliJ's Maven tool window. Not bound to any phase, so builds never run it.
@@ -166,8 +148,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>sql-maven-plugin</artifactId>
-                <!-- 3.x needs Maven 3.6.3, the wrapper uses 3.6.0 -->
-                <version>1.5</version>
+                <version>3.0.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.mariadb.jdbc</groupId>
@@ -188,11 +169,4 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-        </repository>
-    </repositories>
 </project>
