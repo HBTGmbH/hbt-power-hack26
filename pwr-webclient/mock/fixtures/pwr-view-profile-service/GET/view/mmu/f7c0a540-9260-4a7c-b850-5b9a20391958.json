@@ -1,0 +1,471 @@
+{
+  "id": "f7c0a540-9260-4a7c-b850-5b9a20391958",
+  "locale": null,
+  "description": "Erfahrener Java-Entwickler mit Schwerpunkt auf Cloud-Architekturen und agilen Projekten.",
+  "viewProfileInfo": {
+    "viewDescription": "Auszug für ein Java-Angebot",
+    "consultantName": "Senior Consultant Max Mustermann",
+    "consultantBirthDate": "1985-04-12",
+    "name": "Java-Projekte",
+    "creationDate": "2026-11-11",
+    "lastUsed": null,
+    "owner": "mmu"
+  },
+  "careers": [
+    {
+      "name": "Softwareentwickler",
+      "startDate": "2011-04-01",
+      "endDate": "2016-12-31",
+      "enabled": true,
+      "localizedName": null
+    },
+    {
+      "name": "Senior Consultant",
+      "startDate": "2017-01-01",
+      "endDate": null,
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "educations": [
+    {
+      "name": "Universität Hamburg - Informatik",
+      "startDate": "2005-10-01",
+      "endDate": "2011-03-31",
+      "degree": "Master of Science",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "keySkills": [
+    {
+      "name": "Cloud-Architektur",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "languages": [
+    {
+      "name": "Deutsch",
+      "level": "NATIVE",
+      "enabled": true,
+      "localizedName": null
+    },
+    {
+      "name": "Englisch",
+      "level": "BUSINESS_FLUENT",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "qualifications": [
+    {
+      "name": "AWS Certified Solutions Architect - Associate",
+      "date": "2020-06-15",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "sectors": [
+    {
+      "name": "Logistik",
+      "enabled": true,
+      "localizedName": null
+    },
+    {
+      "name": "Versicherungen",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "trainings": [
+    {
+      "name": "Scrum Master Schulung",
+      "startDate": "2019-03-11",
+      "endDate": "2019-03-13",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "projectRoles": [
+    {
+      "name": "Lead Developer",
+      "enabled": true,
+      "localizedName": null
+    }
+  ],
+  "projects": [
+    {
+      "id": 900001,
+      "name": "Neues Kundenportal",
+      "description": "Neuentwicklung des Kundenportals als Cloud-native Anwendung auf AWS.",
+      "client": "Beispiel Versicherung AG",
+      "broker": "HBT GmbH",
+      "localizedClient": null,
+      "localizedBroker": null,
+      "startDate": "2021-01-01",
+      "endDate": "2022-06-30",
+      "projectRoles": [
+        {
+          "name": "Lead Developer",
+          "enabled": true,
+          "localizedName": null
+        }
+      ],
+      "skills": [
+        {
+          "id": null,
+          "name": "AWS",
+          "rating": 4,
+          "enabled": true,
+          "versions": null,
+          "localizedName": null
+        },
+        {
+          "id": null,
+          "name": "Java",
+          "rating": 5,
+          "enabled": true,
+          "versions": null,
+          "localizedName": null
+        },
+        {
+          "id": null,
+          "name": "Kubernetes",
+          "rating": 4,
+          "enabled": true,
+          "versions": null,
+          "localizedName": null
+        },
+        {
+          "id": null,
+          "name": "PostgreSQL",
+          "rating": 4,
+          "enabled": true,
+          "versions": null,
+          "localizedName": null
+        },
+        {
+          "id": null,
+          "name": "React",
+          "rating": 3,
+          "enabled": true,
+          "versions": null,
+          "localizedName": null
+        },
+        {
+          "id": null,
+          "name": "Spring Boot",
+          "rating": 5,
+          "enabled": true,
+          "versions": null,
+          "localizedName": null
+        }
+      ],
+      "enabled": true
+    }
+  ],
+  "displayCategories": [
+    {
+      "id": 900019,
+      "name": "Agile Methods",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900057,
+          "name": "Scrum",
+          "rating": 4,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900020,
+      "name": "Architecture",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900061,
+          "name": "Domain-Driven Design",
+          "rating": 3,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        },
+        {
+          "id": 900060,
+          "name": "Microservices",
+          "rating": 4,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900005,
+      "name": "Backend Frameworks",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900011,
+          "name": "Spring Boot",
+          "rating": 5,
+          "enabled": true,
+          "versions": [
+            {
+              "name": "3.2",
+              "enabled": true
+            }
+          ],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900008,
+      "name": "Build Tools",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900027,
+          "name": "Maven",
+          "rating": 4,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900010,
+      "name": "Cloud Platforms",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900031,
+          "name": "AWS",
+          "rating": 4,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900011,
+      "name": "Containers & Orchestration",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900034,
+          "name": "Docker",
+          "rating": 4,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        },
+        {
+          "id": 900036,
+          "name": "Kubernetes",
+          "rating": 4,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900015,
+      "name": "Databases",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900046,
+          "name": "PostgreSQL",
+          "rating": 4,
+          "enabled": true,
+          "versions": [
+            {
+              "name": "16",
+              "enabled": true
+            }
+          ],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900006,
+      "name": "Frontend Frameworks",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900017,
+          "name": "React",
+          "rating": 3,
+          "enabled": true,
+          "versions": [
+            {
+              "name": "18",
+              "enabled": true
+            }
+          ],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900012,
+      "name": "Infrastructure as Code",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900039,
+          "name": "Terraform",
+          "rating": 3,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900024,
+      "name": "Livestock",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900074,
+          "name": "Beekeeping",
+          "rating": 2,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900016,
+      "name": "Messaging",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900052,
+          "name": "Apache Kafka",
+          "rating": 3,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900003,
+      "name": "Programming Languages",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900001,
+          "name": "Java",
+          "rating": 5,
+          "enabled": true,
+          "versions": [
+            {
+              "name": "17",
+              "enabled": true
+            },
+            {
+              "name": "21",
+              "enabled": true
+            }
+          ],
+          "localizedName": null
+        },
+        {
+          "id": 900002,
+          "name": "Kotlin",
+          "rating": 3,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        },
+        {
+          "id": 900003,
+          "name": "TypeScript",
+          "rating": 3,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900030,
+      "name": "Tabletop Games",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900090,
+          "name": "Chess",
+          "rating": 3,
+          "enabled": true,
+          "versions": [],
+          "localizedName": null
+        }
+      ]
+    },
+    {
+      "id": 900007,
+      "name": "Testing",
+      "localizedName": null,
+      "isDisplay": true,
+      "enabled": true,
+      "displaySkills": [
+        {
+          "id": 900021,
+          "name": "JUnit",
+          "rating": 5,
+          "enabled": true,
+          "versions": [
+            {
+              "name": "5",
+              "enabled": true
+            }
+          ],
+          "localizedName": null
+        }
+      ]
+    }
+  ],
+  "showSkillVersions": true,
+  "localization": null
+}

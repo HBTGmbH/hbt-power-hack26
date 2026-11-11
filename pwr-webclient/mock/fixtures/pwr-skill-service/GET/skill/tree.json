@@ -1,0 +1,1280 @@
+{
+  "id": -1,
+  "qualifier": "##ROOT##",
+  "custom": false,
+  "display": false,
+  "qualifiers": [],
+  "childCategories": [
+    {
+      "id": 900022,
+      "qualifier": "Agriculture",
+      "custom": false,
+      "display": false,
+      "qualifiers": [
+        {
+          "id": 900022,
+          "locale": "deu",
+          "qualifier": "Landwirtschaft",
+          "skills": null
+        }
+      ],
+      "childCategories": [
+        {
+          "id": 900023,
+          "qualifier": "Crop Farming",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900023,
+              "locale": "deu",
+              "qualifier": "Ackerbau",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900071,
+              "qualifier": "Organic Farming",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900068,
+              "qualifier": "Wheat Cultivation",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900070,
+              "qualifier": "Soil Analysis",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900069,
+              "qualifier": "Crop Rotation",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        },
+        {
+          "id": 900026,
+          "qualifier": "Forestry",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900026,
+              "locale": "deu",
+              "qualifier": "Forstwirtschaft",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900078,
+              "qualifier": "Timber Harvesting",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900079,
+              "qualifier": "Reforestation",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        },
+        {
+          "id": 900025,
+          "qualifier": "Agricultural Machinery",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900025,
+              "locale": "deu",
+              "qualifier": "Landmaschinen",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900076,
+              "qualifier": "Combine Harvester Operation",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900077,
+              "qualifier": "GPS-Guided Precision Farming",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900075,
+              "qualifier": "Tractor Operation",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        },
+        {
+          "id": 900024,
+          "qualifier": "Livestock",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900024,
+              "locale": "deu",
+              "qualifier": "Viehwirtschaft",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900074,
+              "qualifier": "Beekeeping",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900073,
+              "qualifier": "Cattle Breeding",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900072,
+              "qualifier": "Dairy Farming",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        }
+      ],
+      "childSkills": []
+    },
+    {
+      "id": 900027,
+      "qualifier": "Gaming",
+      "custom": false,
+      "display": false,
+      "qualifiers": [
+        {
+          "id": 900027,
+          "locale": "deu",
+          "qualifier": "Gaming",
+          "skills": null
+        }
+      ],
+      "childCategories": [
+        {
+          "id": 900030,
+          "qualifier": "Tabletop Games",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900030,
+              "locale": "deu",
+              "qualifier": "Tabletop-Spiele",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900091,
+              "qualifier": "Miniature Painting",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900090,
+              "qualifier": "Chess",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900089,
+              "qualifier": "Game Mastering",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        },
+        {
+          "id": 900028,
+          "qualifier": "Game Development",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900028,
+              "locale": "deu",
+              "qualifier": "Spieleentwicklung",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900082,
+              "qualifier": "Godot",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900081,
+              "qualifier": "Unreal Engine",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900080,
+              "qualifier": "Unity",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900084,
+              "qualifier": "Pixel Art",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900083,
+              "qualifier": "Level Design",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        },
+        {
+          "id": 900029,
+          "qualifier": "Esports",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900029,
+              "locale": "deu",
+              "qualifier": "E-Sport",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900085,
+              "qualifier": "Team Coordination",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900086,
+              "qualifier": "Shoutcasting",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900087,
+              "qualifier": "Tournament Organization",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900088,
+              "qualifier": "Speedrunning",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        }
+      ],
+      "childSkills": []
+    },
+    {
+      "id": 900001,
+      "qualifier": "Information Technology",
+      "custom": false,
+      "display": false,
+      "qualifiers": [
+        {
+          "id": 900001,
+          "locale": "deu",
+          "qualifier": "Informationstechnologie",
+          "skills": null
+        }
+      ],
+      "childCategories": [
+        {
+          "id": 900014,
+          "qualifier": "Data",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900014,
+              "locale": "deu",
+              "qualifier": "Daten",
+              "skills": null
+            }
+          ],
+          "childCategories": [
+            {
+              "id": 900016,
+              "qualifier": "Messaging",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900016,
+                  "locale": "deu",
+                  "qualifier": "Messaging",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900053,
+                  "qualifier": "RabbitMQ",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900052,
+                  "qualifier": "Apache Kafka",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900015,
+              "qualifier": "Databases",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900015,
+                  "locale": "deu",
+                  "qualifier": "Datenbanken",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900050,
+                  "qualifier": "Redis",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900046,
+                  "qualifier": "PostgreSQL",
+                  "qualifiers": [],
+                  "versions": [
+                    "15",
+                    "16"
+                  ],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900048,
+                  "qualifier": "Oracle Database",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900051,
+                  "qualifier": "Elasticsearch",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900047,
+                  "qualifier": "MariaDB",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900049,
+                  "qualifier": "MongoDB",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900017,
+              "qualifier": "Data Engineering",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900017,
+                  "locale": "deu",
+                  "qualifier": "Data Engineering",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900054,
+                  "qualifier": "Apache Spark",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900056,
+                  "qualifier": "dbt",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900055,
+                  "qualifier": "Apache Airflow",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            }
+          ],
+          "childSkills": []
+        },
+        {
+          "id": 900021,
+          "qualifier": "Security",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900021,
+              "locale": "deu",
+              "qualifier": "IT-Sicherheit",
+              "skills": null
+            }
+          ],
+          "childCategories": [],
+          "childSkills": [
+            {
+              "id": 900065,
+              "qualifier": "OpenID Connect",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900067,
+              "qualifier": "Keycloak",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900064,
+              "qualifier": "OAuth 2.0",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            },
+            {
+              "id": 900066,
+              "qualifier": "OWASP Top 10",
+              "qualifiers": [],
+              "versions": [],
+              "aliases": [],
+              "custom": false
+            }
+          ]
+        },
+        {
+          "id": 900002,
+          "qualifier": "Software Development",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900002,
+              "locale": "deu",
+              "qualifier": "Softwareentwicklung",
+              "skills": null
+            }
+          ],
+          "childCategories": [
+            {
+              "id": 900004,
+              "qualifier": "Frameworks",
+              "custom": false,
+              "display": false,
+              "qualifiers": [
+                {
+                  "id": 900004,
+                  "locale": "deu",
+                  "qualifier": "Frameworks",
+                  "skills": null
+                }
+              ],
+              "childCategories": [
+                {
+                  "id": 900005,
+                  "qualifier": "Backend Frameworks",
+                  "custom": false,
+                  "display": true,
+                  "qualifiers": [
+                    {
+                      "id": 900005,
+                      "locale": "deu",
+                      "qualifier": "Backend-Frameworks",
+                      "skills": null
+                    }
+                  ],
+                  "childCategories": [],
+                  "childSkills": [
+                    {
+                      "id": 900014,
+                      "qualifier": "ASP.NET Core",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900012,
+                      "qualifier": "Quarkus",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900013,
+                      "qualifier": "Micronaut",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900016,
+                      "qualifier": "Express",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900011,
+                      "qualifier": "Spring Boot",
+                      "qualifiers": [],
+                      "versions": [
+                        "3.2",
+                        "2.7"
+                      ],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900015,
+                      "qualifier": "Django",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    }
+                  ]
+                },
+                {
+                  "id": 900006,
+                  "qualifier": "Frontend Frameworks",
+                  "custom": false,
+                  "display": true,
+                  "qualifiers": [
+                    {
+                      "id": 900006,
+                      "locale": "deu",
+                      "qualifier": "Frontend-Frameworks",
+                      "skills": null
+                    }
+                  ],
+                  "childCategories": [],
+                  "childSkills": [
+                    {
+                      "id": 900018,
+                      "qualifier": "Angular",
+                      "qualifiers": [],
+                      "versions": [
+                        "16",
+                        "17"
+                      ],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900019,
+                      "qualifier": "Vue.js",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900017,
+                      "qualifier": "React",
+                      "qualifiers": [],
+                      "versions": [
+                        "17",
+                        "18"
+                      ],
+                      "aliases": [],
+                      "custom": false
+                    },
+                    {
+                      "id": 900020,
+                      "qualifier": "Svelte",
+                      "qualifiers": [],
+                      "versions": [],
+                      "aliases": [],
+                      "custom": false
+                    }
+                  ]
+                }
+              ],
+              "childSkills": []
+            },
+            {
+              "id": 900008,
+              "qualifier": "Build Tools",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900008,
+                  "locale": "deu",
+                  "qualifier": "Build-Werkzeuge",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900029,
+                  "qualifier": "npm",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900030,
+                  "qualifier": "Webpack",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900028,
+                  "qualifier": "Gradle",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900027,
+                  "qualifier": "Maven",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900007,
+              "qualifier": "Testing",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900007,
+                  "locale": "deu",
+                  "qualifier": "Testen",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900024,
+                  "qualifier": "Cypress",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900025,
+                  "qualifier": "Playwright",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900021,
+                  "qualifier": "JUnit",
+                  "qualifiers": [],
+                  "versions": [
+                    "4",
+                    "5"
+                  ],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900023,
+                  "qualifier": "Testcontainers",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900026,
+                  "qualifier": "Jest",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900022,
+                  "qualifier": "Mockito",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900003,
+              "qualifier": "Programming Languages",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900003,
+                  "locale": "deu",
+                  "qualifier": "Programmiersprachen",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900004,
+                  "qualifier": "JavaScript",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900008,
+                  "qualifier": "C#",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900005,
+                  "qualifier": "Python",
+                  "qualifiers": [],
+                  "versions": [
+                    "3.12",
+                    "3.11"
+                  ],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900003,
+                  "qualifier": "TypeScript",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900010,
+                  "qualifier": "SQL",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900007,
+                  "qualifier": "Rust",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900002,
+                  "qualifier": "Kotlin",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900009,
+                  "qualifier": "C++",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900001,
+                  "qualifier": "Java",
+                  "qualifiers": [],
+                  "versions": [
+                    "11",
+                    "17",
+                    "8",
+                    "21"
+                  ],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900006,
+                  "qualifier": "Go",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            }
+          ],
+          "childSkills": []
+        },
+        {
+          "id": 900018,
+          "qualifier": "Methods",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900018,
+              "locale": "deu",
+              "qualifier": "Methoden",
+              "skills": null
+            }
+          ],
+          "childCategories": [
+            {
+              "id": 900019,
+              "qualifier": "Agile Methods",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900019,
+                  "locale": "deu",
+                  "qualifier": "Agile Methoden",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900057,
+                  "qualifier": "Scrum",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900058,
+                  "qualifier": "Kanban",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900059,
+                  "qualifier": "SAFe",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900020,
+              "qualifier": "Architecture",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900020,
+                  "locale": "deu",
+                  "qualifier": "Architektur",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900062,
+                  "qualifier": "Event Sourcing",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900060,
+                  "qualifier": "Microservices",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900061,
+                  "qualifier": "Domain-Driven Design",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900063,
+                  "qualifier": "REST API Design",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            }
+          ],
+          "childSkills": []
+        },
+        {
+          "id": 900009,
+          "qualifier": "Cloud & Infrastructure",
+          "custom": false,
+          "display": false,
+          "qualifiers": [
+            {
+              "id": 900009,
+              "locale": "deu",
+              "qualifier": "Cloud & Infrastruktur",
+              "skills": null
+            }
+          ],
+          "childCategories": [
+            {
+              "id": 900010,
+              "qualifier": "Cloud Platforms",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900010,
+                  "locale": "deu",
+                  "qualifier": "Cloud-Plattformen",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900033,
+                  "qualifier": "Google Cloud Platform",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900031,
+                  "qualifier": "AWS",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900032,
+                  "qualifier": "Microsoft Azure",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900011,
+              "qualifier": "Containers & Orchestration",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900011,
+                  "locale": "deu",
+                  "qualifier": "Container & Orchestrierung",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900035,
+                  "qualifier": "Podman",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900034,
+                  "qualifier": "Docker",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900038,
+                  "qualifier": "OpenShift",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900037,
+                  "qualifier": "Helm",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900036,
+                  "qualifier": "Kubernetes",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900012,
+              "qualifier": "Infrastructure as Code",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900012,
+                  "locale": "deu",
+                  "qualifier": "Infrastructure as Code",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900041,
+                  "qualifier": "Pulumi",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900039,
+                  "qualifier": "Terraform",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900040,
+                  "qualifier": "Ansible",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            },
+            {
+              "id": 900013,
+              "qualifier": "CI/CD",
+              "custom": false,
+              "display": true,
+              "qualifiers": [
+                {
+                  "id": 900013,
+                  "locale": "deu",
+                  "qualifier": "CI/CD",
+                  "skills": null
+                }
+              ],
+              "childCategories": [],
+              "childSkills": [
+                {
+                  "id": 900042,
+                  "qualifier": "GitHub Actions",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900045,
+                  "qualifier": "Argo CD",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900044,
+                  "qualifier": "Jenkins",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                },
+                {
+                  "id": 900043,
+                  "qualifier": "GitLab CI",
+                  "qualifiers": [],
+                  "versions": [],
+                  "aliases": [],
+                  "custom": false
+                }
+              ]
+            }
+          ],
+          "childSkills": []
+        }
+      ],
+      "childSkills": []
+    },
+    {
+      "id": 900031,
+      "qualifier": "Other",
+      "custom": false,
+      "display": false,
+      "qualifiers": [],
+      "childCategories": [],
+      "childSkills": []
+    }
+  ],
+  "childSkills": []
+}

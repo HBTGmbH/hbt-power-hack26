@@ -47,6 +47,7 @@
     "@types/vis": "4.18.2",
     "cross-env": "^7.0.3",
     "http-proxy-middleware": "^2.0.10",
+    "playwright": "^1.65.0",
     "react-scripts": "^5.0.1",
     "redux-devtools-extension": "^2.13.9",
     "typescript": "~5.3.3"
@@ -91,6 +92,8 @@
     "compileInfo": "node ./compileBuildInfo.js",
     "start": "node ./withCommit.js react-scripts start",
     "start:local": "cross-env REACT_APP_LOCAL_DEV=true node ./withCommit.js react-scripts start",
+    "start:mock": "cross-env REACT_APP_LOCAL_DEV=true PWR_MOCK=true node ./withCommit.js react-scripts start",
+    "start:record": "cross-env REACT_APP_LOCAL_DEV=true PWR_MOCK=record node ./withCommit.js react-scripts start",
     "build": "cross-env CI=false node ./withCommit.js react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

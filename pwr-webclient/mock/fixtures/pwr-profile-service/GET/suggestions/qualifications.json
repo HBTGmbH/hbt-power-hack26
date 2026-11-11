@@ -1,0 +1,12 @@
+[
+  {
+    "id": 5,
+    "name": "Zusatzqualifikation",
+    "type": "QUALIFICATION"
+  },
+  {
+    "id": 900004,
+    "name": "AWS Certified Solutions Architect - Associate",
+    "type": "QUALIFICATION"
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Chess",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "Maven",
+    "occurrences": 1,
+    "meanRating": 4
+  },
+  {
+    "name": "Java",
+    "occurrences": 1,
+    "meanRating": 5
+  },
+  {
+    "name": "Domain-Driven Design",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "PostgreSQL",
+    "occurrences": 1,
+    "meanRating": 4
+  },
+  {
+    "name": "Beekeeping",
+    "occurrences": 1,
+    "meanRating": 2
+  },
+  {
+    "name": "Spring Boot",
+    "occurrences": 1,
+    "meanRating": 5
+  },
+  {
+    "name": "React",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "Microservices",
+    "occurrences": 1,
+    "meanRating": 4
+  },
+  {
+    "name": "Kotlin",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "TypeScript",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "Docker",
+    "occurrences": 1,
+    "meanRating": 4
+  },
+  {
+    "name": "Terraform",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "JUnit",
+    "occurrences": 1,
+    "meanRating": 5
+  },
+  {
+    "name": "Apache Kafka",
+    "occurrences": 1,
+    "meanRating": 3
+  },
+  {
+    "name": "Scrum",
+    "occurrences": 1,
+    "meanRating": 4
+  },
+  {
+    "name": "AWS",
+    "occurrences": 1,
+    "meanRating": 4
+  },
+  {
+    "name": "Kubernetes",
+    "occurrences": 1,
+    "meanRating": 4
+  }
+]

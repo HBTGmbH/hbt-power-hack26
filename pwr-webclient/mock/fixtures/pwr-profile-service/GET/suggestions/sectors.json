@@ -1,0 +1,17 @@
+[
+  {
+    "id": 3,
+    "name": "Branche",
+    "type": "SECTOR"
+  },
+  {
+    "id": 900006,
+    "name": "Logistik",
+    "type": "SECTOR"
+  },
+  {
+    "id": 900007,
+    "name": "Versicherungen",
+    "type": "SECTOR"
+  }
+]

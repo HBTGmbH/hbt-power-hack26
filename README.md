@@ -113,6 +113,8 @@ npm --prefix pwr-webclient run start:local
 
 Open [localhost:3000](http://localhost:3000). Local boot is auto-authenticated as admin. To act as a user without admin role, start it with the initials of a local consultant, e.g. `REACT_APP_LOCAL_USER=tes npm --prefix pwr-webclient run start:local`: the dev server then sends the headers the edge would set, so the services check access like in production (#350).
 
+Without any backend, `npm --prefix pwr-webclient run start:mock` answers the API from the fixtures in `pwr-webclient/mock/fixtures` (consultant `mmu`, see `pwr-webclient/mock/mockApi.js`); the skill `ui-screenshot` takes screenshots with it.
+
 ### Load test data (optional)
 
 The profile and skill services each have a Maven goal that inserts sample data into the local MariaDB:

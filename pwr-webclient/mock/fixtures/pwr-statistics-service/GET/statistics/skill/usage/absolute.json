@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Chess",
+    "value": 1
+  },
+  {
+    "name": "Maven",
+    "value": 1
+  },
+  {
+    "name": "Java",
+    "value": 1
+  },
+  {
+    "name": "Domain-Driven Design",
+    "value": 1
+  },
+  {
+    "name": "PostgreSQL",
+    "value": 1
+  },
+  {
+    "name": "Beekeeping",
+    "value": 1
+  },
+  {
+    "name": "Spring Boot",
+    "value": 1
+  },
+  {
+    "name": "React",
+    "value": 1
+  },
+  {
+    "name": "Microservices",
+    "value": 1
+  },
+  {
+    "name": "Kotlin",
+    "value": 1
+  }
+]

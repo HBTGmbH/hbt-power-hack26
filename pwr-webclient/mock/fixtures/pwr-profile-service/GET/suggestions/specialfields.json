@@ -1,0 +1,12 @@
+[
+  {
+    "id": 6,
+    "name": "Spezialgebiet",
+    "type": "SPECIAL_FIELD"
+  },
+  {
+    "id": 900010,
+    "name": "Cloud-Architektur",
+    "type": "SPECIAL_FIELD"
+  }
+]

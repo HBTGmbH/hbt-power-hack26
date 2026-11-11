@@ -1,0 +1,61 @@
+{
+  "initials": "mmu",
+  "hints": [
+    {
+      "type": "MISSING",
+      "code": "DESCRIPTION_SHORT",
+      "section": "DESCRIPTION",
+      "projectId": null,
+      "projectName": null,
+      "since": null,
+      "values": {
+        "length": 88,
+        "minLength": 300
+      }
+    },
+    {
+      "type": "INCOMPLETE",
+      "code": "PROJECT_INCOMPLETE",
+      "section": "PROJECTS",
+      "projectId": 900001,
+      "projectName": "Neues Kundenportal",
+      "since": null,
+      "values": {
+        "reasons": [
+          "SHORT_DESCRIPTION"
+        ],
+        "skillCount": 6,
+        "minSkills": 5,
+        "descriptionLength": 68,
+        "minDescriptionLength": 300
+      }
+    },
+    {
+      "type": "OUTDATED",
+      "code": "NO_FOLLOW_UP_PROJECT",
+      "section": "PROJECTS",
+      "projectId": null,
+      "projectName": null,
+      "since": "2022-06-30T00:00:00",
+      "values": {
+        "months": 3
+      }
+    },
+    {
+      "type": "OUTDATED",
+      "code": "SKILLS_OUTDATED",
+      "section": "SKILLS",
+      "projectId": null,
+      "projectName": null,
+      "since": "2026-01-01T00:00:00",
+      "values": {
+        "months": 6
+      }
+    }
+  ],
+  "lastEdited": "2026-01-01T00:00:00",
+  "skillsLastEdited": "2026-01-01T00:00:00",
+  "projectsLastEdited": "2026-01-01T00:00:00",
+  "lastConfirmed": null,
+  "skillTreeChecked": true
+}

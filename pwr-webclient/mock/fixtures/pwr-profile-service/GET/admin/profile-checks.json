@@ -1,0 +1,20 @@
+[
+  {
+    "initials": "emu",
+    "name": "Erika Musterfrau",
+    "hintCount": 4,
+    "outdatedCount": 0,
+    "lastEdited": "2026-11-08T13:21:05.814253",
+    "lastConfirmed": null,
+    "confirmationsSinceLastChange": 0
+  },
+  {
+    "initials": "mmu",
+    "name": "Max Mustermann",
+    "hintCount": 4,
+    "outdatedCount": 2,
+    "lastEdited": "2026-01-01T00:00:00",
+    "lastConfirmed": null,
+    "confirmationsSinceLastChange": 0
+  }
+]

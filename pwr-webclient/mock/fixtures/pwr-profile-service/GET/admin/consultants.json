@@ -1,0 +1,406 @@
+[
+  {
+    "initials": "emu",
+    "firstName": "Erika",
+    "lastName": "Musterfrau",
+    "title": "Dr.",
+    "active": true,
+    "birthDate": "1985-05-05",
+    "profile": {
+      "id": 1,
+      "description": "Werbetext",
+      "lastEdited": "2026-11-08T13:21:05.814253",
+      "skillsLastEdited": null,
+      "lastConfirmed": null,
+      "languages": [
+        {
+          "id": 1,
+          "nameEntity": {
+            "id": 1,
+            "name": "Englisch",
+            "type": "LANGUAGE"
+          },
+          "level": "BUSINESS_FLUENT"
+        }
+      ],
+      "qualification": [
+        {
+          "id": 5,
+          "nameEntity": {
+            "id": 5,
+            "name": "Zusatzqualifikation",
+            "type": "QUALIFICATION"
+          },
+          "date": "2026-11-08"
+        }
+      ],
+      "trainingEntries": [
+        {
+          "id": 4,
+          "nameEntity": {
+            "id": 4,
+            "name": "Hackathon",
+            "type": "TRAINING"
+          },
+          "startDate": "2026-11-08",
+          "endDate": "2026-11-08"
+        }
+      ],
+      "education": [
+        {
+          "id": 2,
+          "nameEntity": {
+            "id": 2,
+            "name": "Ausbildung",
+            "type": "EDUCATION"
+          },
+          "startDate": "2026-11-08",
+          "endDate": "2026-11-08",
+          "degree": "Hacker"
+        }
+      ],
+      "sectors": [
+        {
+          "id": 3,
+          "nameEntity": {
+            "id": 3,
+            "name": "Branche",
+            "type": "SECTOR"
+          }
+        }
+      ],
+      "careerEntries": [],
+      "specialFieldEntries": [
+        {
+          "id": 6,
+          "nameEntity": {
+            "id": 6,
+            "name": "Spezialgebiet",
+            "type": "SPECIAL_FIELD"
+          }
+        }
+      ],
+      "projects": [],
+      "skills": []
+    },
+    "profilePictureId": ""
+  },
+  {
+    "initials": "mmu",
+    "firstName": "Max",
+    "lastName": "Mustermann",
+    "title": "Senior Consultant",
+    "active": true,
+    "birthDate": "1985-04-12",
+    "profile": {
+      "id": 900001,
+      "description": "Erfahrener Java-Entwickler mit Schwerpunkt auf Cloud-Architekturen und agilen Projekten.",
+      "lastEdited": "2026-01-01T00:00:00",
+      "skillsLastEdited": null,
+      "lastConfirmed": null,
+      "languages": [
+        {
+          "id": 900001,
+          "nameEntity": {
+            "id": 900001,
+            "name": "Deutsch",
+            "type": "LANGUAGE"
+          },
+          "level": "NATIVE"
+        },
+        {
+          "id": 900002,
+          "nameEntity": {
+            "id": 900002,
+            "name": "Englisch",
+            "type": "LANGUAGE"
+          },
+          "level": "BUSINESS_FLUENT"
+        }
+      ],
+      "qualification": [
+        {
+          "id": 900004,
+          "nameEntity": {
+            "id": 900004,
+            "name": "AWS Certified Solutions Architect - Associate",
+            "type": "QUALIFICATION"
+          },
+          "date": "2020-06-15"
+        }
+      ],
+      "trainingEntries": [
+        {
+          "id": 900005,
+          "nameEntity": {
+            "id": 900005,
+            "name": "Scrum Master Schulung",
+            "type": "TRAINING"
+          },
+          "startDate": "2019-03-11",
+          "endDate": "2019-03-13"
+        }
+      ],
+      "education": [
+        {
+          "id": 900003,
+          "nameEntity": {
+            "id": 900003,
+            "name": "Universität Hamburg - Informatik",
+            "type": "EDUCATION"
+          },
+          "startDate": "2005-10-01",
+          "endDate": "2011-03-31",
+          "degree": "Master of Science"
+        }
+      ],
+      "sectors": [
+        {
+          "id": 900007,
+          "nameEntity": {
+            "id": 900007,
+            "name": "Versicherungen",
+            "type": "SECTOR"
+          }
+        },
+        {
+          "id": 900006,
+          "nameEntity": {
+            "id": 900006,
+            "name": "Logistik",
+            "type": "SECTOR"
+          }
+        }
+      ],
+      "careerEntries": [
+        {
+          "id": 900009,
+          "nameEntity": {
+            "id": 900009,
+            "name": "Senior Consultant",
+            "type": "CAREER"
+          },
+          "startDate": "2017-01-01",
+          "endDate": null
+        },
+        {
+          "id": 900008,
+          "nameEntity": {
+            "id": 900008,
+            "name": "Softwareentwickler",
+            "type": "CAREER"
+          },
+          "startDate": "2011-04-01",
+          "endDate": "2016-12-31"
+        }
+      ],
+      "specialFieldEntries": [
+        {
+          "id": 900010,
+          "nameEntity": {
+            "id": 900010,
+            "name": "Cloud-Architektur",
+            "type": "SPECIAL_FIELD"
+          }
+        }
+      ],
+      "projects": [
+        {
+          "id": 900001,
+          "name": "Neues Kundenportal",
+          "client": {
+            "id": 900011,
+            "name": "Beispiel Versicherung AG",
+            "type": "COMPANY"
+          },
+          "broker": {
+            "id": 900012,
+            "name": "HBT GmbH",
+            "type": "COMPANY"
+          },
+          "projectRoles": [
+            {
+              "id": 900013,
+              "name": "Lead Developer",
+              "type": "PROJECT_ROLE"
+            }
+          ],
+          "skills": [
+            {
+              "id": 900001,
+              "name": "Java",
+              "rating": 5,
+              "versions": [
+                "17",
+                "21"
+              ]
+            },
+            {
+              "id": 900004,
+              "name": "Spring Boot",
+              "rating": 5,
+              "versions": [
+                "3.2"
+              ]
+            },
+            {
+              "id": 900005,
+              "name": "React",
+              "rating": 3,
+              "versions": [
+                "18"
+              ]
+            },
+            {
+              "id": 900008,
+              "name": "AWS",
+              "rating": 4,
+              "versions": []
+            },
+            {
+              "id": 900012,
+              "name": "PostgreSQL",
+              "rating": 4,
+              "versions": [
+                "16"
+              ]
+            },
+            {
+              "id": 900010,
+              "name": "Kubernetes",
+              "rating": 4,
+              "versions": []
+            }
+          ],
+          "startDate": "2021-01-01",
+          "endDate": "2022-06-30",
+          "description": "Neuentwicklung des Kundenportals als Cloud-native Anwendung auf AWS.",
+          "internalNote": null,
+          "lastEdited": null
+        }
+      ],
+      "skills": [
+        {
+          "id": 900001,
+          "name": "Java",
+          "rating": 5,
+          "versions": [
+            "17",
+            "21"
+          ]
+        },
+        {
+          "id": 900004,
+          "name": "Spring Boot",
+          "rating": 5,
+          "versions": [
+            "3.2"
+          ]
+        },
+        {
+          "id": 900011,
+          "name": "Terraform",
+          "rating": 3,
+          "versions": []
+        },
+        {
+          "id": 900008,
+          "name": "AWS",
+          "rating": 4,
+          "versions": []
+        },
+        {
+          "id": 900006,
+          "name": "JUnit",
+          "rating": 5,
+          "versions": [
+            "5"
+          ]
+        },
+        {
+          "id": 900002,
+          "name": "Kotlin",
+          "rating": 3,
+          "versions": []
+        },
+        {
+          "id": 900010,
+          "name": "Kubernetes",
+          "rating": 4,
+          "versions": []
+        },
+        {
+          "id": 900013,
+          "name": "Apache Kafka",
+          "rating": 3,
+          "versions": []
+        },
+        {
+          "id": 900017,
+          "name": "Beekeeping",
+          "rating": 2,
+          "versions": []
+        },
+        {
+          "id": 900018,
+          "name": "Chess",
+          "rating": 3,
+          "versions": []
+        },
+        {
+          "id": 900003,
+          "name": "TypeScript",
+          "rating": 3,
+          "versions": []
+        },
+        {
+          "id": 900005,
+          "name": "React",
+          "rating": 3,
+          "versions": [
+            "18"
+          ]
+        },
+        {
+          "id": 900015,
+          "name": "Microservices",
+          "rating": 4,
+          "versions": []
+        },
+        {
+          "id": 900014,
+          "name": "Scrum",
+          "rating": 4,
+          "versions": []
+        },
+        {
+          "id": 900009,
+          "name": "Docker",
+          "rating": 4,
+          "versions": []
+        },
+        {
+          "id": 900012,
+          "name": "PostgreSQL",
+          "rating": 4,
+          "versions": [
+            "16"
+          ]
+        },
+        {
+          "id": 900007,
+          "name": "Maven",
+          "rating": 4,
+          "versions": []
+        },
+        {
+          "id": 900016,
+          "name": "Domain-Driven Design",
+          "rating": 3,
+          "versions": []
+        }
+      ]
+    },
+    "profilePictureId": null
+  }
+]

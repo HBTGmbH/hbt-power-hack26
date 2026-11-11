@@ -22,10 +22,11 @@ Webclient (`pwr-webclient`, CRA/react-scripts, TypeScript). Node version is pinn
 ```shell
 npm --prefix pwr-webclient install
 npm --prefix pwr-webclient run start:local       # dev server on :3000 against local services, no login
+npm --prefix pwr-webclient run start:mock        # the same with fixtures instead of services (pwr-webclient/mock)
 npm --prefix pwr-webclient run build
 ```
 
-There are no webclient tests at the moment.
+There are no webclient tests at the moment. Screenshots of any page with mocked data, for reviewing UI changes: the Claude Code skill `ui-screenshot` (`.claude/skills/ui-screenshot`, Playwright). It explains how to record fixtures from the seed data; they are public, so invented data only.
 
 The pre-commit hook in `.githooks/pre-commit` tests every `pwr-*` package that has staged changes. A service runs `./mvnw -B -q test`; the webclient runs the TypeScript check `tsc --noEmit`. Turn the hook on once per clone with `git config core.hooksPath .githooks`. A failing test blocks the commit. `git commit --no-verify` skips the hook, and CI still runs the full build.
 

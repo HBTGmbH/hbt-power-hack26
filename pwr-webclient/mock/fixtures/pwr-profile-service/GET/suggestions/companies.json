@@ -1,0 +1,12 @@
+[
+  {
+    "id": 900011,
+    "name": "Beispiel Versicherung AG",
+    "type": "COMPANY"
+  },
+  {
+    "id": 900012,
+    "name": "HBT GmbH",
+    "type": "COMPANY"
+  }
+]

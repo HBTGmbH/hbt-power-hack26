@@ -1,0 +1,14 @@
+[
+  {
+    "initials": "emu",
+    "shortName": "Erika",
+    "fullName": "Erika Musterfrau",
+    "active": true
+  },
+  {
+    "initials": "mmu",
+    "shortName": "Max",
+    "fullName": "Max Mustermann",
+    "active": true
+  }
+]

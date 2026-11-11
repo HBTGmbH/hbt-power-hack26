@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "Englisch",
+    "type": "LANGUAGE"
+  },
+  {
+    "id": 900001,
+    "name": "Deutsch",
+    "type": "LANGUAGE"
+  },
+  {
+    "id": 900002,
+    "name": "Englisch",
+    "type": "LANGUAGE"
+  }
+]

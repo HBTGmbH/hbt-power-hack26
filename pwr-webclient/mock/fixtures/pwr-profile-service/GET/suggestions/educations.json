@@ -1,0 +1,12 @@
+[
+  {
+    "id": 2,
+    "name": "Ausbildung",
+    "type": "EDUCATION"
+  },
+  {
+    "id": 900003,
+    "name": "Universität Hamburg - Informatik",
+    "type": "EDUCATION"
+  }
+]
