@@ -7,7 +7,9 @@ import de.hbt.pwr.profile.model.profile.LanguageSkillLevel;
 import de.hbt.pwr.profile.model.profile.NameEntityType;
 import de.hbt.pwr.profile.model.profile.Profile;
 import de.hbt.pwr.profile.model.profile.entries.*;
+import de.hbt.pwr.profile.service.housekeeping.HousekeepingService;
 import org.apache.logging.log4j.Logger;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +18,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
@@ -51,6 +55,18 @@ public class ProfileUpdateServiceITest extends AbstractIntegrationTest {
     @Autowired
     private ProfileRepository profileRepository;
 
+    @Autowired
+    private HousekeepingService housekeepingService;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private NameEntityAdminService nameEntityAdminService;
+
+    /** A profile a test saved outside a transaction, deleted with all it left after the test */
+    private Long committedProfileId;
+
 
     private static Logger LOG = getLogger(ProfileUpdateService.class);
 
@@ -70,6 +86,28 @@ public class ProfileUpdateServiceITest extends AbstractIntegrationTest {
 
     @Before
     public void setUp() {
+    }
+
+    /**
+     * The import runs in a transaction of its own, so a test of it can't be one and its data stays in the database the
+     * tests share. Left there, its elements (Sector1 …) reach the tests after it, e.g. NameEntityAdminServiceITest.
+     */
+    @After
+    public void deleteCommittedProfile() {
+        if (committedProfileId == null) {
+            return;
+        }
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            Profile profile = profileRepository.findById(committedProfileId).orElseThrow();
+            // The projects first: they hold skills of the profile, which go with it
+            projectRepository.deleteAll(profile.getProjects());
+            profile.getProjects().clear();
+            profileRepository.delete(profile);
+        });
+        assertThat(housekeepingService.check()).allSatisfy(findings -> assertThat(findings.getCount()).isZero());
+        for (NameEntityType type : NameEntityType.values()) {
+            nameEntityAdminService.deleteUnused(type);
+        }
     }
 
     public void initTestData() {
@@ -481,6 +519,7 @@ public class ProfileUpdateServiceITest extends AbstractIntegrationTest {
     public void testImportValidProfileWithNewProfiles() {
         Profile profile = new Profile();
         profile = profileRepository.saveAndFlush(profile);
+        committedProfileId = profile.getId();
 
         Skill skill1 = Skill.builder().name("Skill1").rating(4).versions(new HashSet<>()).build();
         Skill skill2 = Skill.builder().name("Skill2").rating(2).versions(new HashSet<>()).build();
