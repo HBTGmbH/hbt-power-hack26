@@ -27,6 +27,8 @@ npm --prefix pwr-webclient run build
 
 There are no webclient tests at the moment.
 
+The pre-commit hook in `.githooks/pre-commit` tests every `pwr-*` package that has staged changes. A service runs `./mvnw -B -q test`; the webclient runs the TypeScript check `tsc --noEmit`. Turn the hook on once per clone with `git config core.hooksPath .githooks`. A failing test blocks the commit. `git commit --no-verify` skips the hook, and CI still runs the full build.
+
 ## Local run
 
 `docker compose up -d` (or `podman compose` / `docker-compose`) starts MariaDB on host port **3307** (`skill`, `profile`, `report` DBs, root/`changeit`) and Redis on 6379 (password `changeit`) in their own `hbt-power` network. Port 3307 keeps it clear of other local MySQLs; the `localDev` JDBC URLs and the seed URLs in the POMs point there. Start services with the `localDev` Spring profile: IntelliJ run configs in `.run/` (`[localDev] Backend` starts all but the edge service), or from a terminal `./mvnw package -DskipTests` and then `java -jar target/<name>.jar --spring.profiles.active=localDev` from inside the service folder. Sample data: `./mvnw sql:execute` in profile/skill service, report template: `./mvnw exec:exec` in report service. Tables are created by Hibernate, so start the services once before seeding.

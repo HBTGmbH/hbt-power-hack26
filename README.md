@@ -47,6 +47,14 @@ eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 
 `fnm install` in `pwr-webclient` installs the pinned Node version, `cd` switches to it automatically.
 
+### Pre-commit hook
+
+```shell
+git config core.hooksPath .githooks
+```
+
+After this, every commit runs the tests of the `pwr-*` packages it changes (see [`AGENTS.md`](AGENTS.md#build-and-test)).
+
 ## IntelliJ setup
 
 1. Open the repository root in IntelliJ.

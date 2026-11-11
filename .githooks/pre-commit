@@ -1,0 +1,35 @@
+#!/bin/sh
+# Runs the tests of every pwr-* package with staged changes. Install once per clone:
+#   git config core.hooksPath .githooks
+# Skip in an emergency with `git commit --no-verify`; CI runs the full build anyway.
+# The tests run against the working tree, so unstaged changes in a package count too.
+
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+packages=$(git diff --cached --name-only --diff-filter=ACMRD | sed -n 's#^\(pwr-[^/]*\)/.*#\1#p' | sort -u)
+
+[ -n "$packages" ] || exit 0
+
+failed=""
+for package in $packages; do
+    dir="$root/$package"
+    [ -d "$dir" ] || continue
+    echo "pre-commit: testing $package"
+    if [ -f "$dir/pom.xml" ]; then
+        (cd "$dir" && sh ./mvnw -B -q test) || failed="$failed $package"
+    elif [ -f "$dir/package.json" ]; then
+        # No webclient tests yet (AGENTS.md): the TypeScript check is the test.
+        if [ ! -x "$dir/node_modules/.bin/tsc" ]; then
+            echo "pre-commit: $package has no node_modules; run npm --prefix $package install" >&2
+            failed="$failed $package"
+            continue
+        fi
+        (cd "$dir" && node_modules/.bin/tsc --noEmit -p tsconfig.json) || failed="$failed $package"
+    fi
+done
+
+if [ -n "$failed" ]; then
+    echo "pre-commit: tests failed in:$failed" >&2
+    exit 1
+fi
