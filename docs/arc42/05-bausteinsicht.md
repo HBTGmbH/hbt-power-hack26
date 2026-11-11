@@ -57,7 +57,7 @@ Die Services sind nach demselben Muster gebaut: Controller (REST) → Service (F
 ```mermaid
 flowchart LR
     IN(["Anfrage<br/>/pwr-&lt;service&gt;/**"]) --> SEC
-    subgraph Edge[pwr-edge-service · de.hbt.pwr]
+    subgraph Edge[pwr-edge-service · de.hbt.power.edge]
         SEC["SecurityConfig<br/>JWT prüfen, Rolle je Pfad"]
         AH["AccountHeadersFilter<br/>X-Pwr-User-* entfernen und setzen"]
         RT["PwrRoutingConfig<br/>Route je Service, stripPrefix(1)"]
