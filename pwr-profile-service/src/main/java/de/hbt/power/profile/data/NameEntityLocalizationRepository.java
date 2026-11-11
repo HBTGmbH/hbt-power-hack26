@@ -1,0 +1,14 @@
+package de.hbt.power.profile.data;
+
+import de.hbt.power.profile.model.profile.entries.NameEntity;
+import de.hbt.power.profile.model.profile.entries.NameEntityLocalization;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface NameEntityLocalizationRepository extends JpaRepository<NameEntityLocalization, Long> {
+
+    List<NameEntityLocalization> findAllByNameEntity(NameEntity nameEntity);
+
+    List<NameEntityLocalization> findAllByLanguage(String language);
+}

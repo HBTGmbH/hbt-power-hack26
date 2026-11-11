@@ -2,10 +2,10 @@
   <configuration default="false" name="[localDev] Edge Server" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="local development">
     <option name="ACTIVE_PROFILES" value="localDev" />
     <module name="pwr-edge-service" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.pwr.EdgeserverApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.power.edge.EdgeserverApplication" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="de.hbt.pwr.*" />
+        <option name="PATTERN" value="de.hbt.power.edge.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

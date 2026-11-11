@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="localDev" />
     <option name="ENABLE_JMX_AGENT" value="false" />
     <module name="pwr-report-service" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.HbtPowerReportServiceApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.power.report.HbtPowerReportServiceApplication" />
     <option name="VM_PARAMETERS" value="-XX:+DisableAttachMechanism" />
     <method v="2">
       <option name="Make" enabled="true" />
