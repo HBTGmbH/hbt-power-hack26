@@ -17,8 +17,6 @@ export class Color {
     public static readonly HBT_2017_TEXT_WHITE: Color = new Color(255, 255, 255);
     public static readonly HBT_2017_TEXT_BLACK: Color = new Color(0, 0, 0);
 
-    public static readonly HBT_2017_DARK_BLUE: Color = new Color(25, 30, 85);
-    public static readonly HBT_2017_SPOT_COLOR_1: Color = new Color(70, 230, 230);
     public static readonly HBT_2017_SPOT_COLOR_2: Color = new Color(95, 110, 240);
     public static readonly HBT_2017_GRAY: Color = new Color(140, 140, 170);
     public static readonly HBT_2017_BLACK: Color = new Color(0, 0, 0);

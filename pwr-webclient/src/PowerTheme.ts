@@ -1,5 +1,13 @@
 import {createTheme, ThemeOptions} from '@material-ui/core/styles';
 
+// The pink palette, defined once; overrides and index.css (via --pwr-* variables) read it
+const PRIMARY_LIGHT = '#E35183';
+const PRIMARY_MAIN = '#AD1457';
+const PRIMARY_DARK = '#78002E';
+const SECONDARY_LIGHT = '#FFE0EB';
+const SECONDARY_MAIN = '#F8BBD0';
+const SECONDARY_DARK = '#C48B9F';
+
 const newPowerTheme: ThemeOptions = {
     typography: {
         fontSize: 24,
@@ -9,15 +17,15 @@ const newPowerTheme: ThemeOptions = {
     },
     palette: {
         primary: {
-            light: '#474b77',
-            main: '#191E55',
-            dark: '#11153b',
+            light: PRIMARY_LIGHT,
+            main: PRIMARY_MAIN,
+            dark: PRIMARY_DARK,
             contrastText: '#fff',
         },
         secondary: {
-            light: '#6bebeb',
-            main: '#46E6E6',
-            dark: '#31a1a1',
+            light: SECONDARY_LIGHT,
+            main: SECONDARY_MAIN,
+            dark: SECONDARY_DARK,
         },
         // Errors and destructive actions in red (#201): 7.3:1 on white, 6.0:1 on the grey of the fields, white
         // text on it 7.3:1. Not the HBT orange, which reaches only 2.3:1 (see PWR_ACCENT).
@@ -79,14 +87,14 @@ const newPowerTheme: ThemeOptions = {
         MuiTabs: {
             root: {
                 color: '#fff',
-                indicatorColor: '#46E6E6',
-                backgroundColor: '#191E55'
+                indicatorColor: SECONDARY_MAIN,
+                backgroundColor: PRIMARY_MAIN
             }
         },
         MuiTab: {
             root: {
                 '&$selected': {
-                    color: '#46E6E6'
+                    color: SECONDARY_MAIN
                 }
             }
 

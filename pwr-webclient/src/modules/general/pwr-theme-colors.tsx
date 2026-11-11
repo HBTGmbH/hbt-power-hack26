@@ -7,14 +7,18 @@ const useStyles = makeStyles(theme => ({
         ':root': {
             '--pwr-error': theme.palette.error.main,
             '--pwr-warning': theme.palette.warning.main,
+            '--pwr-primary': theme.palette.primary.main,
+            '--pwr-primary-light': theme.palette.primary.light,
+            '--pwr-primary-dark': theme.palette.primary.dark,
+            '--pwr-secondary': theme.palette.secondary.main,
             '--pwr-accent': PWR_ACCENT,
         },
     },
 }));
 
 /**
- * Publishes the error, warning and accent colour of the theme as CSS variables (--pwr-error, --pwr-warning,
- * --pwr-accent); rendered once inside the theme provider
+ * Publishes the primary, secondary, error, warning and accent colour of the theme as CSS variables
+ * (--pwr-primary, --pwr-primary-light, --pwr-primary-dark, --pwr-secondary, --pwr-error, --pwr-warning, --pwr-accent); rendered once inside the theme provider
  */
 export const PwrThemeColors = () => {
     useStyles();

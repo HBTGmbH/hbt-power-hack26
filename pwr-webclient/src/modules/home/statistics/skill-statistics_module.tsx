@@ -14,6 +14,8 @@ import {Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, Tooltip, XAxi
 import {APIScatterSkill} from '../../../model/statistics/ScatterSkill';
 import {APISkillUsageMetric} from '../../../model/statistics/ApiMetrics';
 
+import {POWER_MUI_THEME} from '../../../PowerTheme';
+
 const TagCloud = require('react-tagcloud');
 const TCloud: any = TagCloud.TagCloud;
 
@@ -123,7 +125,7 @@ class SkillStatisticsModule extends React.Component<SkillStatisticsProps
                         <Legend/>
                         <Bar
                             dataKey="value"
-                            fill="#8884d8"
+                            fill={POWER_MUI_THEME.palette.primary.light}
                             layout="vertical"
                             name={PowerLocalize.get('SkillStatistics.SkillCount')}/>
                     </BarChart>
@@ -140,7 +142,7 @@ class SkillStatisticsModule extends React.Component<SkillStatisticsProps
                         <Bar
                             unit="%"
                             dataKey="value"
-                            fill="#8884d8"
+                            fill={POWER_MUI_THEME.palette.primary.light}
                             layout="vertical"
                             name={PowerLocalize.get('SkillStatistics.SkillCount.Relative')}
                         />
@@ -183,8 +185,8 @@ class SkillStatisticsModule extends React.Component<SkillStatisticsProps
                         <Tooltip/>
                         <Legend/>
                         <CartesianGrid stroke='#f5f5f5'/>
-                        <Bar dataKey='occ' barSize={20} fill='#413ea0'/>
-                        <Line type='monotone' dataKey='rating' stroke='#ff7300'/>
+                        <Bar dataKey='occ' barSize={20} fill={POWER_MUI_THEME.palette.primary.main}/>
+                        <Line type='monotone' dataKey='rating' stroke={POWER_MUI_THEME.palette.primary.dark}/>
                     </ComposedChart>
                 </CardContent>
 

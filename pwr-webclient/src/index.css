@@ -36,8 +36,8 @@ body {
 
 /* Logged in user in the app bar (#105) */
 .pwr-logged-in-avatar {
-    background-color: #46E6E6 !important;
-    color: #191E55 !important;
+    background-color: var(--pwr-secondary) !important;
+    color: var(--pwr-primary-dark) !important;
     font-size: 18px !important;
     margin: 0 4px;
 }
@@ -222,7 +222,7 @@ body {
 }
 
 .pwr-login-icon-tile {
-    background-color: #191E55;
+    background-color: var(--pwr-primary);
     border-radius: 50%;
     padding: 16px;
 }
@@ -232,11 +232,11 @@ body {
 }
 
 .power-name-logo {
-    color: rgb(70, 230, 230)
+    color: var(--pwr-secondary)
 }
 
 .hbt-dark-blue-text {
-    color: rgb(25, 30, 85)
+    color: var(--pwr-primary)
 }
 
 .disabled-consultant-img {
@@ -262,7 +262,7 @@ body {
     position: absolute;
     inset: 6px;
     border: 3px solid #fff;
-    box-shadow: 0 0 0 3px #191E55;
+    box-shadow: 0 0 0 3px var(--pwr-primary);
     pointer-events: none;
 }
 
@@ -361,7 +361,7 @@ label.pwr-category-level-label {
 
 .pwr-category-level-selected .MuiFormControlLabel-label {
     font-weight: 500;
-    color: #191E55;
+    color: var(--pwr-primary);
 }
 
 /* How many skills fit into a category (#171), at the right end of its line. Doubled class: the margin of Material-UI's
@@ -597,8 +597,8 @@ label.pwr-category-level-label {
     clear: both;
     margin-top: 8px;
     padding: 12px 16px;
-    border-left: 4px solid #191e55;
-    background-color: rgba(25, 30, 85, 0.04);
+    border-left: 4px solid var(--pwr-primary);
+    background-color: rgba(173, 20, 87, 0.04);
 }
 
 /* Right card without a selected project (#145): the next step in the middle */
@@ -743,7 +743,7 @@ a.MuiButton-root:focus {
 
 a.MuiButton-textPrimary:hover,
 a.MuiButton-textPrimary:focus {
-    color: #191e55;
+    color: var(--pwr-primary);
 }
 
 .pwr-view-profile-nav-count {
@@ -793,7 +793,7 @@ label.pwr-view-profile-switch-label {
 .pwr-view-profile-section-sort .MuiTableSortLabel-root,
 .pwr-view-profile-section-sort .MuiTableSortLabel-root.MuiTableSortLabel-active,
 .pwr-view-profile-section-sort .MuiTableSortLabel-root.MuiTableSortLabel-active .MuiTableSortLabel-icon {
-    color: #191E55;
+    color: var(--pwr-primary);
 }
 
 /* Groups of entries, two per row from Material-UI md up */
@@ -945,9 +945,9 @@ label.pwr-view-profile-switch-label {
 
 /* Where the dragged entry lands: dashed, its content hidden (#149) */
 .pwr-view-entries-drop-target {
-    outline: 2px dashed rgba(25, 30, 85, 0.5);
+    outline: 2px dashed rgba(173, 20, 87, 0.5);
     outline-offset: -2px;
-    background-color: rgba(25, 30, 85, 0.04);
+    background-color: rgba(173, 20, 87, 0.04);
 }
 
 .pwr-view-entries-drop-target > * {
