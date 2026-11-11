@@ -175,24 +175,25 @@ podman compose down -v
 ## Knowledge base
 
 The project knowledge (this README, `AGENTS.md`, arc42, the glossary in [`docs/glossar/`](docs/glossar/)) is searchable
-through [`tools/knowledge`](tools/knowledge/README.md), a Node script without dependencies (decisions
-[ADR-26 and ADR-27](docs/arc42/09-architekturentscheidungen.md#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar)).
-Nothing to install: Claude Code picks it up from `.claude/settings.json` (hooks at session start, on every prompt and before
-writes, commits and pushes) and `.mcp.json` (MCP server `knowledge`).
+through the Claude Code plugin `knowledge` from [`HBTGmbH/hbt-leviathan-hack26`](https://github.com/HBTGmbH/hbt-leviathan-hack26)
+(decisions [ADR-26 and ADR-27](docs/arc42/09-architekturentscheidungen.md#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar)).
+`.claude/settings.json` registers its marketplace and enables it: when you open this repository in Claude Code and trust
+it, Claude Code offers to install it (read access to the tool repository needed). By hand:
 
 ```shell
-node tools/knowledge/kb.mjs status                 # what is loaded
-node tools/knowledge/kb.mjs search "<question>"
-node tools/knowledge/kb.mjs define Profilauszug    # term of the domain language
-node tools/knowledge/kb.mjs audit                  # replaced words, incomplete ADRs, dead links
-node tools/knowledge/kb.mjs check --staged         # no private content in the next commit
-node --test tools/knowledge/test/*.test.mjs
+claude plugin marketplace add HBTGmbH/hbt-leviathan-hack26
+claude plugin install knowledge@hbt-leviathan --scope project
 ```
 
+After a restart, sessions start with an overview of the knowledge base, prompts get matching sections, and a hook blocks
+private content before writes, commits and pushes. The MCP server `knowledge` offers `search`, `read`, `define`
+(e.g. `Profilauszug`), `status`, `audit` (replaced words, incomplete ADRs, dead links) and `check` (no private content in
+the next commit).
+
 Project members may add a private knowledge source; without one the tool works with the public docs only. How to set one
-up, the leak protection and the weekly run that keeps docs and code aligned are in
-[`tools/knowledge/README.md`](tools/knowledge/README.md). The rules for working with it are in
-[`AGENTS.md`](AGENTS.md#knowledge-base).
+up, the leak protection and the weekly run that keeps docs and code aligned are in the
+[tool's README](https://github.com/HBTGmbH/hbt-leviathan-hack26#readme), other agents than Claude Code in its `INSTALL.md`.
+The rules for working with it are in [`AGENTS.md`](AGENTS.md#knowledge-base).
 
 ## Known issues
 

@@ -27,8 +27,6 @@ npm --prefix pwr-webclient run build
 
 There are no webclient tests at the moment.
 
-Knowledge base tool (`tools/knowledge`, Node without dependencies, see [Knowledge base](#knowledge-base)): `node --test tools/knowledge/test/*.test.mjs`. A test that needs bash passes its script on stdin (`bash -s`), since on Windows `bash` may be WSL's, which re-parses `-c`.
-
 ## Local run
 
 `docker compose up -d` (or `podman compose` / `docker-compose`) starts MariaDB on host port **3307** (`skill`, `profile`, `report` DBs, root/`changeit`) and Redis on 6379 (password `changeit`) in their own `hbt-power` network. Port 3307 keeps it clear of other local MySQLs; the `localDev` JDBC URLs and the seed URLs in the POMs point there. Start services with the `localDev` Spring profile: IntelliJ run configs in `.run/` (`[localDev] Backend` starts all but the edge service), or from a terminal `./mvnw package -DskipTests` and then `java -jar target/<name>.jar --spring.profiles.active=localDev` from inside the service folder. Sample data: `./mvnw sql:execute` in profile/skill service, report template: `./mvnw exec:exec` in report service. Tables are created by Hibernate, so start the services once before seeding.
@@ -106,16 +104,16 @@ A PR only shows checks for the folders it touches. Workflow changes must pass ac
 <!-- knowledge-base -->
 ## Knowledge base
 
-The project knowledge (public docs, an optional private **project sidecar** readable by project members only, and optional **HBT-wide knowledge** readable by all employees) is searchable through [`tools/knowledge`](tools/knowledge/README.md): MCP server `knowledge` (tools `search`, `read`, `define`, `overview`) or `node tools/knowledge/kb.mjs search "<question>"`.
+The project knowledge (public docs, an optional private **project sidecar** readable by project members only, and optional **HBT-wide knowledge** readable by all employees) is searchable through the Claude Code plugin `knowledge@hbt-leviathan` from [`HBTGmbH/hbt-leviathan-hack26`](https://github.com/HBTGmbH/hbt-leviathan-hack26), offered on opening this repository (`.claude/settings.json`): MCP server `knowledge` with the tools `search`, `read`, `define`, `overview`, `decisions` and `terms`, and for maintenance `decide`, `term`, `new_page`, `audit`, `status` and `check`. Other agents get the same MCP server as described in the tool's `INSTALL.md`.
 
 The knowledge base is being tried out (ADR-26, status *vorgeschlagen*). While that trial runs, the rules below and the knowledge-base item of the Definition of Done apply to everyone who works with it; if ADR-26 is rejected, they go with it. The domain language (ADR-27) applies regardless.
 
-- The weekly run changes only Markdown; outdated code comments it finds are listed as hints in the project sidecar (`consolidation/hints.md`), shown by `kb status` and at the start of each session. Working in that area, fix the comment in the same branch as a small fix along the way and delete the hint from the sidecar file.
+- The weekly run changes only Markdown; outdated code comments it finds are listed as hints in the project sidecar (`consolidation/hints.md`), shown by `status` and at the start of each session. Working in that area, fix the comment in the same branch as a small fix along the way and delete the hint from the sidecar file.
 
 - Look things up before answering questions about the domain, processes, terms, architecture or decisions, and before changing code whose business meaning is unclear. Cite the `id` of the source.
-- **Decisions** form one register: public ADRs (arc42 chapter 9) and internal ones (`ADR-Inn` project, `ADR-HBT-nn` HBT-wide). Check `kb.mjs decisions <topic>` before changing architecture, flows or rules; record new ones with `kb.mjs decide public|intern|hbt "<title>"`. Superseded decisions stay, marked „abgelöst durch ADR-nn“.
-- The glossary is the binding **domain language**: one term per thing. Name things in docs, UI texts, comments and new code with the glossary term or its code name; replace words listed under „Nicht verwenden“ (`define <word>` tells you the right term). Add a new term to the glossary before using it. Each term is a note (`docs/glossar/<Term>.md`); link it with a normal relative Markdown link (no `[[…]]` wikilinks in this repository — they belong to the private Obsidian knowledge modules only); `kb.mjs audit` reports deviations.
-- Results marked **INTERN** (project sidecar) or **INTERN:HBT** (HBT-wide) are private: use them to understand, never copy them, literally or paraphrased, into code, comments, test data, commits, issues, PRs or public docs, and never copy project knowledge into HBT-wide knowledge. A hook blocks literal copies; `node tools/knowledge/kb.mjs check` scans the repository.
+- **Decisions** form one register: public ADRs (arc42 chapter 9) and internal ones (`ADR-Inn` project, `ADR-HBT-nn` HBT-wide). Check `decisions <topic>` before changing architecture, flows or rules; record new ones with `decide` (scope `public`, `intern` or `hbt`). Superseded decisions stay, marked „abgelöst durch ADR-nn“.
+- The glossary is the binding **domain language**: one term per thing. Name things in docs, UI texts, comments and new code with the glossary term or its code name; replace words listed under „Nicht verwenden“ (`define <word>` tells you the right term). Add a new term to the glossary before using it. Each term is a note (`docs/glossar/<Term>.md`); link it with a normal relative Markdown link (no `[[…]]` wikilinks in this repository — they belong to the private Obsidian knowledge modules only); `audit` reports deviations.
+- Results marked **INTERN** (project sidecar) or **INTERN:HBT** (HBT-wide) are private: use them to understand, never copy them, literally or paraphrased, into code, comments, test data, commits, issues, PRs or public docs, and never copy project knowledge into HBT-wide knowledge. A hook blocks literal copies; `check` scans the repository.
 - New knowledge goes where it belongs: public (arc42, glossary, this file) for architecture, code and UI terms; the project sidecar for internal processes, customers, sales and operations of this project (when in doubt, here); HBT-wide knowledge only for what applies to all projects and reveals nothing about this one.
 
 ## GitHub workflow
@@ -172,7 +170,7 @@ Apply this at the end of each task to what the task changed, and report which it
 - [ ] `AGENTS.md` and `README.md` are updated in the same PR if a rule, command, port or prerequisite changed
 - [ ] The affected chapter of [`docs/arc42/`](docs/arc42/README.md) is updated in the same PR if a service, an interface between services, a flow, the deployment or an architecture decision changed (a new decision gets the next ADR number in chapter 9)
 - [ ] No operating environment details in code, docs, commits, issue or PR (see GitHub workflow)
-- [ ] Nothing from the private knowledge sidecar in code, docs, commits, issue or PR: `node tools/knowledge/kb.mjs check --staged` passes (see Knowledge base; applies while ADR-26 is being tried)
+- [ ] Nothing from the private knowledge sidecar in code, docs, commits, issue or PR: the MCP tool `check` with `staged: true` passes (see Knowledge base; applies while ADR-26 is being tried)
 - [ ] Every commit message starts with `#NNN - ` (or `#noissue - `)
 - [ ] Small fixes made along the way (see GitHub workflow) are listed in the PR
 - [ ] PR body follows the template, contains `Closes #NNN` and the compliance sentence

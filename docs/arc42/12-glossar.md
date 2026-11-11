@@ -1,6 +1,6 @@
 # 12. Glossar
 
-Das Glossar ist die verbindliche Domänensprache von HBT Power: ein Begriff je Sache, in Doku, Oberfläche, Code und Gesprächen mit Agenten ([ADR-27](09-architekturentscheidungen.md#adr-27-deutsche-domänensprache-mit-verbindlichem-glossar)). Jeder Begriff ist eine eigene Notiz in [`docs/glossar/`](../glossar/) mit den Namen im Code (`code`) und den Wörtern, die er ersetzt (`nicht-verwenden`). Verlinkt wird auf die Notiz, z. B. [Berater](../glossar/Berater.md). Neue Begriffe kommen dorthin, bevor sie benutzt werden: `node tools/knowledge/kb.mjs term public "Name"` (siehe [Wissensbasis](../../tools/knowledge/README.md#domänensprache)). Die Tabelle unten wird daraus erzeugt.
+Das Glossar ist die verbindliche Domänensprache von HBT Power: ein Begriff je Sache, in Doku, Oberfläche, Code und Gesprächen mit Agenten ([ADR-27](09-architekturentscheidungen.md#adr-27-deutsche-domänensprache-mit-verbindlichem-glossar)). Jeder Begriff ist eine eigene Notiz in [`docs/glossar/`](../glossar/) mit den Namen im Code (`code`) und den Wörtern, die er ersetzt (`nicht-verwenden`). Verlinkt wird auf die Notiz, z. B. [Berater](../glossar/Berater.md). Neue Begriffe kommen dorthin, bevor sie benutzt werden: MCP-Tool `term` mit `scope: public` (siehe [Wissensbasis](https://github.com/HBTGmbH/hbt-leviathan-hack26#domänensprache)). Die Tabelle unten wird daraus erzeugt.
 
 <!-- kb:begriffe -->
 <!-- Erzeugt von `kb terms --index` aus den Begriffs-Notizen; dort ändern, nicht hier. -->

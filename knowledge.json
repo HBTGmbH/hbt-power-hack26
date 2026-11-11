@@ -73,15 +73,6 @@
       "glob": "docs/**/*.md"
     },
     {
-      "glob": "tools/knowledge/README.md",
-      "audience": [
-        "business",
-        "domain",
-        "tech"
-      ],
-      "boost": 0.5
-    },
-    {
       "glob": "README.md",
       "audience": [
         "tech"

@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "hbt-leviathan": {
+      "source": {
+        "source": "github",
+        "repo": "HBTGmbH/hbt-leviathan-hack26"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "knowledge@hbt-leviathan": true
+  }
+}
