@@ -3,3 +3,6 @@
 
 # #46 - Zeilenenden auf LF normalisiert
 b57dcfd83956a2dde147782b0b0fcf0febe8bd1f
+
+# #17 - Packages nach de.hbt.power.<service> verschoben (HBTGmbH/hbt-power-hack26#17)
+fc079e77ff7a194ebd381701de9ce3a4d4aa4c19

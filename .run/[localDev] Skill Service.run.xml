@@ -2,7 +2,7 @@
   <configuration default="false" name="[localDev] Skill Service" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="local development">
     <option name="ACTIVE_PROFILES" value="localDev" />
     <module name="pwr-skill-service" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.power.SkillDbApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.power.skill.SkillDbApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

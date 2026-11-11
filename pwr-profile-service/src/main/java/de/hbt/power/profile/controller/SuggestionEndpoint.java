@@ -1,0 +1,176 @@
+package de.hbt.power.profile.controller;
+
+import de.hbt.power.profile.client.SkillProfileClient;
+import de.hbt.power.profile.data.NameEntityRepository;
+import de.hbt.power.profile.data.ProfileRepository;
+import de.hbt.power.profile.model.HBTPowerConstants;
+import de.hbt.power.profile.model.Skill;
+import de.hbt.power.profile.model.profile.NameEntityType;
+import de.hbt.power.profile.model.profile.entries.NameEntity;
+import de.hbt.power.profile.model.profile.entries.Project;
+import de.hbt.power.profile.service.SkillRecommendationService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ * Provides suggestions based around {@link NameEntity}.
+ * <p>
+ * Each endpoint defined here returns a list of all currently existing {@link NameEntity} entities with the
+ * given type.
+ * </p>
+ */
+@Controller
+@RequestMapping(value = "/suggestions", produces = "application/json")
+public class SuggestionEndpoint {
+
+
+    private final NameEntityRepository nameEntityRepository;
+    private final ProfileRepository profileRepository;
+    private final SkillRecommendationService skillRecommendationService;
+    private final SkillProfileClient skillProfileClient;
+
+    @Autowired
+    public SuggestionEndpoint(NameEntityRepository nameEntityRepository, ProfileRepository profileRepository,
+                              SkillRecommendationService skillRecommendationService, SkillProfileClient skillProfileClient) {
+        this.nameEntityRepository = nameEntityRepository;
+        this.profileRepository = profileRepository;
+        this.skillRecommendationService = skillRecommendationService;
+        this.skillProfileClient = skillProfileClient;
+    }
+
+
+    private ResponseEntity<Collection<NameEntity>> getSuggestionResponse(NameEntityType type) {
+        return ResponseEntity.ok(nameEntityRepository.findAllByType(type));
+    }
+
+    @GetMapping("/sectors")
+    @ApiOperation(value = "Returns possible entities for sectors")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getSectorSuggestions() {
+        return getSuggestionResponse(NameEntityType.SECTOR);
+    }
+
+    @GetMapping("/languages")
+    @ApiOperation(value = "Returns all currently known languages")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getLanguageSuggestions() {
+        return getSuggestionResponse(NameEntityType.LANGUAGE);
+    }
+
+    @GetMapping("/educations")
+    @ApiOperation(value = "Returns all currently known educations")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getEducationSuggestions() {
+        return getSuggestionResponse(NameEntityType.EDUCATION);
+    }
+
+    @GetMapping("/trainings")
+    @ApiOperation(value = "Returns all currently known trainings")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getTrainingSuggestions() {
+        return getSuggestionResponse(NameEntityType.TRAINING);
+    }
+
+    @GetMapping("/qualifications")
+    @ApiOperation(value = "Returns all currently known qualifications")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getQualificationSuggestions() {
+        return getSuggestionResponse(NameEntityType.QUALIFICATION);
+    }
+
+    @GetMapping("/career")
+    @ApiOperation(value = "Returns all currently known careers")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getCareerSuggestions() {
+        return getSuggestionResponse(NameEntityType.CAREER);
+    }
+
+    @GetMapping("/specialfields")
+    @ApiOperation(value = "Returns all currently known careers")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getKeySkillSuggestions() {
+        return getSuggestionResponse(NameEntityType.SPECIAL_FIELD);
+    }
+
+    @GetMapping("/companies")
+    @ApiOperation(value = "Returns all currently known companies")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getCompanySuggestions() {
+        return getSuggestionResponse(NameEntityType.COMPANY);
+    }
+
+    @GetMapping("/projectroles")
+    @ApiOperation(value = "Returns all currently known project roles")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entities in body", response = List.class)
+    })
+    public ResponseEntity<Collection<NameEntity>> getProjectRoleSuggestions() {
+        return getSuggestionResponse(NameEntityType.PROJECT_ROLE);
+    }
+
+
+    @GetMapping("/constants")
+    @ApiOperation(value = "Returns API specific constants that limit collection data")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Constants in body", response = HBTPowerConstants.class)
+    })
+    public ResponseEntity<HBTPowerConstants> getConstants() {
+        return ResponseEntity.ok(new HBTPowerConstants());
+    }
+
+
+    /**
+     * The skill names used in the profiles, each once, under the names of the skill tree (#208): other spellings and
+     * aliases appear as the skill they stand for. As used if the skill service doesn't answer.
+     */
+    @GetMapping("/skills")
+    public ResponseEntity<List<String>> getAllUniqueSkillNames() {
+        Function<String, String> treeName = skillProfileClient.getSkillTreeIndex()
+                .<Function<String, String>>map(index -> index::treeName)
+                .orElse(String::trim);
+        List<String> results = profileRepository.findAll()
+                .stream()
+                .flatMap(profile -> profile.getSkills().stream())
+                .map(Skill::getName)
+                .map(treeName)
+                .distinct()
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(results);
+    }
+
+    @PostMapping(value = "/skillRecommendation", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<Collection<Skill>> getSkillRecommendations(@RequestBody Project project) {
+        return ResponseEntity.ok(skillRecommendationService.getRecommendedSkills(project));
+    }
+
+}

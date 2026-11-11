@@ -1,0 +1,69 @@
+package de.hbt.power.report.controller;
+
+
+import de.hbt.power.report.model.files.DBFile;
+import de.hbt.power.report.model.files.UploadFileResponse;
+import de.hbt.power.report.service.DBFileStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.util.Map;
+
+/**
+ * Template files (BIRT designs). Only the view-profile service calls this, while an admin uploads or deletes a
+ * template; the edge lets only admins through to {@code /admin} (#203). Rendering reads the files directly.
+ */
+@RequestMapping("admin/file")
+@RestController
+public class FileUploadController {
+
+
+    private DBFileStorageService dbFileStorageService;
+
+    @Autowired
+    public FileUploadController(DBFileStorageService dbFileStorageService) {
+        this.dbFileStorageService = dbFileStorageService;
+    }
+
+    @PostMapping
+    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
+        DBFile dbFile = dbFileStorageService.storeFile(file);
+
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("admin/file/" + dbFile.getId())
+                .toUriString();
+
+        return new UploadFileResponse(dbFile.getId(), dbFile.getFilename(), fileDownloadUri, file.getContentType(), file.getSize());
+
+    }
+
+    @GetMapping("{fileId}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileId) {
+        DBFile dbFile = dbFileStorageService.getFile(fileId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(dbFile.getFiletype()))
+                .body(new ByteArrayResource(dbFile.getData()));
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, String>> allFiles() {
+        return ResponseEntity.ok(dbFileStorageService.allFiles());
+    }
+
+    /**
+     * Succeeds for a file that is already gone too: deleting a template deletes its files, a missing one must not
+     * make that fail (#112)
+     */
+    @DeleteMapping("{fileId}")
+    public ResponseEntity deleteFile(@PathVariable String fileId){
+        dbFileStorageService.deleteFile(fileId);
+        return ResponseEntity.ok().build();
+    }
+}

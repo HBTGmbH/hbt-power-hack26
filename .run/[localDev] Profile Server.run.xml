@@ -2,7 +2,7 @@
   <configuration default="false" name="[localDev] Profile Server" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="local development">
     <option name="ACTIVE_PROFILES" value="localDev" />
     <module name="pwr-profile-service" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.pwr.profile.ProfileServiceApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="de.hbt.power.profile.ProfileServiceApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

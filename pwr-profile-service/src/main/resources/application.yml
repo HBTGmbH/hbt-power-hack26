@@ -21,7 +21,7 @@ server:
 logging:
   level:
     ROOT: info
-    de.hbt.pwr: debug
+    de.hbt.power.profile: debug
     org.springframework.web: debug
   file: profile-service.log
 # This service can be polite!
