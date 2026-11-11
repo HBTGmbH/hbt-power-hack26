@@ -1,6 +1,7 @@
 import {connect} from 'react-redux';
 import * as React from 'react';
-import {Button, Divider, Icon, Paper} from '@material-ui/core';
+import {Button, Divider, Icon, IconButton, Paper, Tooltip} from '@material-ui/core';
+import ArrowBack from '@material-ui/icons/ArrowBack';
 import {PowerLocalize} from '../../../localization/PowerLocalizer';
 import {ApplicationState} from '../../../reducers/reducerIndex';
 import {ProfileDataAsyncActionCreator} from '../../../reducers/profile-new/profile/ProfileDataAsyncActionCreator';
@@ -154,6 +155,23 @@ class ProfileModule extends React.Component<ProfileProps & ProfileLocalProps & P
         </nav>;
     }
 
+    /**
+     * Back from skills and projects to the consultant page of the same profile; a link, so the router asks about
+     * unsaved changes and a middle click opens a new tab
+     */
+    private renderBack() {
+        const initials = this.props.match.params.initials;
+        const label = PowerLocalize.get('Profile.BackToConsultant');
+        return <div>
+            <Tooltip title={label}>
+                <IconButton color="primary" component={Link} to={Paths.build(Paths.USER_PROFILE, {initials})}
+                            role="link" aria-label={label}>
+                    <ArrowBack/>
+                </IconButton>
+            </Tooltip>
+        </div>;
+    }
+
     private renderInfo(value: string) {
         return <span>
             {value}
@@ -210,6 +228,7 @@ class ProfileModule extends React.Component<ProfileProps & ProfileLocalProps & P
         if (tabValue === PROJECTS_TAB) {
             // List and form are cards of their own (#145), not one card around both
             return <div className="mui-margin">
+                {this.renderBack()}
                 <Projects/>
             </div>;
         }
@@ -303,6 +322,7 @@ class ProfileModule extends React.Component<ProfileProps & ProfileLocalProps & P
 
                 {tabValue === SKILLS_TAB &&
                 <div className="mui-margin">
+                    {this.renderBack()}
                     <ProfileSkills/>
                 </div>
                 }
