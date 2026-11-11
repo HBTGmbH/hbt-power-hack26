@@ -68,7 +68,8 @@ jobs:
     permissions:
       contents: read
       packages: write  # pushes the image to ghcr.io
-    if: github.event_name != 'pull_request'
+    # Hackathon 2026: only the upstream repository publishes images, never this fork (also not manually)
+    if: github.event_name != 'pull_request' && github.repository == 'HBTGmbH/hbt-power'
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
