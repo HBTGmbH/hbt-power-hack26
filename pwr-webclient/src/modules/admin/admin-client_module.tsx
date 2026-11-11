@@ -78,7 +78,7 @@ class AdminClientModule extends React.Component<AdminClientProps
                                 <AppInfoButton/>
                                 <LoggedInUserAvatar/>
                                 <Tooltip title={PowerLocalize.get('Tooolbar.LogOut')}>
-                                    <IconButton color={'secondary'} aria-label={PowerLocalize.get('Tooolbar.LogOut')}
+                                    <IconButton color="inherit" aria-label={PowerLocalize.get('Tooolbar.LogOut')}
                                                 onClick={this.props.logOutAdmin}>
                                         <Icon className={'material-icons'}> input</Icon>
                                     </IconButton>

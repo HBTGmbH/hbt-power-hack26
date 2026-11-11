@@ -1,5 +1,15 @@
 import {createTheme, ThemeOptions} from '@material-ui/core/styles';
 
+/**
+ * The HBT orange (#201): an accent and the primary colour. Surfaces in it carry dark blue text (6.7:1), never white
+ * (2.3:1), and it is never the colour of text on white.
+ */
+export const PWR_ACCENT = '#ff8e01';
+// Dark blue: text on orange surfaces and dark text in general
+const PWR_DARK_BLUE = '#191E55';
+// Dark orange for controls and graphics on white: 3.7:1
+const PWR_DARK_ORANGE = '#c66e00';
+
 const newPowerTheme: ThemeOptions = {
     typography: {
         fontSize: 24,
@@ -9,15 +19,17 @@ const newPowerTheme: ThemeOptions = {
     },
     palette: {
         primary: {
-            light: '#474b77',
-            main: '#191E55',
-            dark: '#11153b',
-            contrastText: '#fff',
+            light: '#ffa933',
+            main: PWR_ACCENT,
+            dark: PWR_DARK_ORANGE,
+            contrastText: PWR_DARK_BLUE,
         },
         secondary: {
-            light: '#6bebeb',
-            main: '#46E6E6',
-            dark: '#31a1a1',
+            // Dark orange: 6.4:1 on white, white text on it 6.4:1
+            light: PWR_DARK_ORANGE,
+            main: '#8f4e00',
+            dark: '#5c3200',
+            contrastText: '#fff',
         },
         // Errors and destructive actions in red (#201): 7.3:1 on white, 6.0:1 on the grey of the fields, white
         // text on it 7.3:1. Not the HBT orange, which reaches only 2.3:1 (see PWR_ACCENT).
@@ -78,26 +90,67 @@ const newPowerTheme: ThemeOptions = {
         },
         MuiTabs: {
             root: {
-                color: '#fff',
-                indicatorColor: '#46E6E6',
-                backgroundColor: '#191E55'
+                color: PWR_DARK_BLUE,
+                indicatorColor: PWR_DARK_BLUE,
+                backgroundColor: PWR_ACCENT
             }
         },
         MuiTab: {
             root: {
                 '&$selected': {
-                    color: '#46E6E6'
+                    color: PWR_DARK_BLUE
                 }
             }
 
+        },
+        // Orange is never the colour of text on white: text and outlined buttons in the primary colour use dark blue
+        MuiButton: {
+            textPrimary: {
+                color: PWR_DARK_BLUE
+            },
+            outlinedPrimary: {
+                color: PWR_DARK_BLUE
+            }
+        },
+        // Focused labels would turn orange on white or grey: dark blue instead
+        MuiFormLabel: {
+            root: {
+                '&$focused': {
+                    color: PWR_DARK_BLUE
+                }
+            }
+        },
+        // Controls and icons in the primary colour on white need 3:1: dark orange instead of the HBT orange
+        MuiIconButton: {
+            colorPrimary: {
+                color: PWR_DARK_ORANGE
+            }
+        },
+        MuiCheckbox: {
+            colorPrimary: {
+                '&$checked': {
+                    color: PWR_DARK_ORANGE
+                }
+            }
+        },
+        MuiRadio: {
+            colorPrimary: {
+                '&$checked': {
+                    color: PWR_DARK_ORANGE
+                }
+            }
+        },
+        MuiSwitch: {
+            colorPrimary: {
+                '&$checked': {
+                    color: PWR_DARK_ORANGE
+                },
+                '&$checked + $track': {
+                    backgroundColor: PWR_DARK_ORANGE
+                }
+            }
         }
     }
 };
 
 export const POWER_MUI_THEME = createTheme(newPowerTheme as any);
-
-/**
- * The HBT orange (#201): an accent only, e.g. a bar or a border next to text in the normal text colour, or an area with
- * dark blue text on it (6.7:1). Never the colour of text and never behind white text: 2.3:1 on white.
- */
-export const PWR_ACCENT = '#ff8e01';

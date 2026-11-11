@@ -360,7 +360,7 @@ class PowerToolbarModule extends React.Component<ToolbarProps & ToolbarLocalProp
                                 onClick={(e: any) => {
                                     this.handleMenuOpen(e);
                                 }}
-                                style={{color: 'white', marginLeft: -12, marginRight: 20}}
+                                color="inherit" style={{marginLeft: -12, marginRight: 20}}
                             >
                                 <Icon className="material-icons">menu</Icon>
                             </IconButton>
@@ -380,7 +380,7 @@ class PowerToolbarModule extends React.Component<ToolbarProps & ToolbarLocalProp
                         <LoggedInUserAvatar/>
                         <Tooltip title={PowerLocalize.get('Tooolbar.LogOut')}>
                             <IconButton
-                                style={{'color': 'white'}}
+                                color="inherit"
                                 className="material-icons"
                                 aria-label={PowerLocalize.get('Tooolbar.LogOut')}
                                 onClick={this.logOutUser}

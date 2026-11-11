@@ -3,7 +3,7 @@ import * as React from 'react';
 import {PowerLocalize} from '../../localization/PowerLocalizer';
 import {ApplicationState} from '../../reducers/reducerIndex';
 import Paper from '@material-ui/core/Paper';
-import {Color} from '../../utils/ColorUtil';
+import {POWER_MUI_THEME} from '../../PowerTheme';
 import {Profile} from '../../reducers/profile-new/profile/model/Profile';
 import {Bar, BarChart, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 
@@ -72,7 +72,7 @@ class ProfileStatisticsModule extends React.Component<ProfileStatisticsProps
                     <Tooltip cursor={{fill: 'rgba(0, 0, 0, 0.04)'}}
                              formatter={(_: any, name: string, item: any) => [item.payload.value, name]}/>
                     <Bar dataKey="length" name={PowerLocalize.get('ProfileStatistics.Count')}
-                         fill={Color.HBT_2017_DARK_BLUE.toCSSRGBString()} barSize={16} isAnimationActive={false}>
+                         fill={POWER_MUI_THEME.palette.primary.dark} barSize={16} isAnimationActive={false}>
                         <LabelList dataKey="value" position="right"/>
                     </Bar>
                 </BarChart>

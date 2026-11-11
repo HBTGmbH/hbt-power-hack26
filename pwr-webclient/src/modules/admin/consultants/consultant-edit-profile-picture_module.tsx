@@ -46,7 +46,7 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.text.secondary,
         '&:hover, &:focus-visible': {
             borderColor: theme.palette.primary.main,
-            color: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
             outline: 'none',
         },
     },
