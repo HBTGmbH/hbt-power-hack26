@@ -1,5 +1,8 @@
 import {createTheme, ThemeOptions} from '@material-ui/core/styles';
 
+// Primary colour, defined once: palette and tab bar read it from here
+const PRIMARY_MAIN = '#0D47A1';
+
 const newPowerTheme: ThemeOptions = {
     typography: {
         fontSize: 24,
@@ -9,9 +12,9 @@ const newPowerTheme: ThemeOptions = {
     },
     palette: {
         primary: {
-            light: '#474b77',
-            main: '#191E55',
-            dark: '#11153b',
+            light: '#5472D3',
+            main: PRIMARY_MAIN,
+            dark: '#002171',
             contrastText: '#fff',
         },
         secondary: {
@@ -80,7 +83,7 @@ const newPowerTheme: ThemeOptions = {
             root: {
                 color: '#fff',
                 indicatorColor: '#46E6E6',
-                backgroundColor: '#191E55'
+                backgroundColor: PRIMARY_MAIN
             }
         },
         MuiTab: {
