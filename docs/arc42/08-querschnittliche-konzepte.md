@@ -46,7 +46,7 @@ flowchart LR
 - **Binärdaten** (Profilbilder, Vorschauen) lädt der Webclient mit Token als Blob. Profilbilder dürfen privat lange gecacht werden (`Cache-Control: private, max-age=365d, immutable`, #67).
 - **Datensparsamkeit:** `GET /consultants/names` gibt allen Benutzern nur Kürzel, Kurz- und vollen Namen und ob der Berater aktiv ist (#216, #350). `GET /consultants/{initials}` nennt das Geburtsdatum nur dem Berater selbst und Admins (#350).
 - **Lokal** gibt es keine Edge und keine Anmeldung: Man ist Admin, die Header fehlen (z. B. bleibt „Exportiert von“ leer). Mit `REACT_APP_LOCAL_USER=<kürzel>` ist man ein Benutzer ohne Admin-Rolle; der Dev-Server setzt dann die Header wie die Edge, und die Services prüfen wie in Produktion (#350).
-- **Lieferkette:** Actions sind nach einer festen Regel gepinnt und geprüft (actionlint, zizmor, #8). Der `publish`-Job nutzt keinen Cache.
+- **Lieferkette:** Actions sind nach einer festen Regel gepinnt und geprüft (actionlint, zizmor, #8). Ein Lauf, der ein Image publiziert, nutzt keinen Cache.
 
 ## 8.2 Persistenz
 

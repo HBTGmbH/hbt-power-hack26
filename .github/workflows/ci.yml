@@ -1,0 +1,185 @@
+name: CI
+
+# One workflow for all folders pwr-*: `changes` finds the folders a run touches, the build
+# steps live in the reusable workflows _maven-service.yml (folders with a pom.xml) and
+# _node-service.yml (folders with a package.json). `deploy` (_deploy.yml) deploys the images to
+# dev: after every push to main, and from any branch on a manual run with `deploy`. What main
+# deployed to dev goes to prod by hand through deploy-prod.yml.
+# `CI result` sums up every run and is the one check to require for merging.
+
+on:
+  push:
+    branches:
+      - main
+      # TEMP: publishes this branch to STACKIT while ci.yml isn't on main yet (workflow_dispatch
+      # only works from the default branch). Remove before merging.
+      - stackit-pipeline
+  pull_request:
+    branches:
+      - main
+  # Builds and publishes every folder of the chosen branch, e.g. to try a branch on dev:
+  # gh workflow run ci.yml --ref <branch> -f deploy=true
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the images of this branch to dev
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded PR runs stop; runs on main queue, so every commit there gets its images
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  changes:
+    name: Find changed folders
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      maven: ${{ steps.detect.outputs.maven }}
+      node: ${{ steps.detect.outputs.node }}
+      built: ${{ steps.detect.outputs.built }}
+      all: ${{ steps.detect.outputs.all }}
+      image-tag: ${{ steps.detect.outputs.image-tag }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # the push event's "before" commit can lie far back
+          persist-credentials: false
+
+      - name: Detect changed folders
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          all=$(find . -mindepth 1 -maxdepth 1 -type d -name 'pwr-*' -printf '%f\n' | sort)
+
+          # A PR is checked out as a merge commit: its first parent is the target branch.
+          if [ "$EVENT" = pull_request ]; then base=$(git rev-parse HEAD^1); else base=$BEFORE; fi
+
+          reason=""
+          if [ "$EVENT" = workflow_dispatch ]; then
+            reason="manual run"
+          elif [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            reason="no base commit to compare with (new branch or force push)"
+          else
+            files=$(git diff --name-only "$base" HEAD)
+            if grep -qE '^\.github/workflows/(ci|_[^/]+)\.yml$' <<<"$files"; then
+              reason="CI workflows changed"
+            fi
+          fi
+
+          if [ -n "$reason" ]; then
+            echo "Building every folder: $reason"
+            changed=$all
+          else
+            # Documentation and local development files build nothing
+            changed=$(awk -F/ 'NF > 1 && $1 ~ /^pwr-/ && $2 != "local-dev" && tolower($0) !~ /\.md$/ { print $1 }' <<<"$files" | sort -u)
+          fi
+
+          to_json() { jq -Rnc '[inputs | select(length > 0)]'; }
+          maven=$(for d in $changed; do if [ -f "$d/pom.xml" ]; then echo "$d"; fi; done | to_json)
+          node=$(for d in $changed; do if [ -f "$d/package.json" ]; then echo "$d"; fi; done | to_json)
+          built=$(jq -nc --argjson a "$maven" --argjson b "$node" '$a + $b')
+          # Every folder with an image, for the deployment of a complete set
+          all_images=$(for d in $all; do if [ -f "$d/pom.xml" ] || [ -f "$d/package.json" ]; then echo "$d"; fi; done | to_json)
+          # The one image tag of this commit, for the build and the deployment alike
+          image_tag="sha-${GITHUB_SHA::7}"
+          {
+            echo "maven=$maven"
+            echo "node=$node"
+            echo "built=$built"
+            echo "all=$all_images"
+            echo "image-tag=$image_tag"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Folders to build"
+            echo "- Maven: \`$maven\`"
+            echo "- Node: \`$node\`"
+            echo "- Image tag: \`$image_tag\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Pull requests: dependency caches allowed, images built but not pushed, no registry credentials.
+  # main (and manual runs): no dependency caches, push to the STACKIT Container Registry; the
+  # registry and its credentials come from the GitHub environment `dev`, which only these runs enter.
+
+  maven:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.maven != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.maven) }}
+    uses: ./.github/workflows/_maven-service.yml
+    with:
+      service: ${{ matrix.service }}
+      publish: ${{ github.event_name != 'pull_request' }}
+      environment: dev
+      image-tag: ${{ needs.changes.outputs.image-tag }}
+    # Environment secrets reach a reusable workflow only this way; only the publishing job of
+    # our own workflow enters the environment `dev` and reads them.
+    secrets: inherit  # zizmor: ignore[secrets-inherit] needed for the secrets of the environment dev
+
+  node:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: needs.changes.outputs.node != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.node) }}
+    uses: ./.github/workflows/_node-service.yml
+    with:
+      service: ${{ matrix.service }}
+      publish: ${{ github.event_name != 'pull_request' }}
+      environment: dev
+      image-tag: ${{ needs.changes.outputs.image-tag }}
+    # Environment secrets reach a reusable workflow only this way; only the publishing job of
+    # our own workflow enters the environment `dev` and reads them.
+    secrets: inherit  # zizmor: ignore[secrets-inherit] needed for the secrets of the environment dev
+
+  # After every push to main, and on a manual run with `deploy` from any branch. Only if every
+  # build succeeded and at least one image was built. The environment's deployment branch rules
+  # decide which branches may deploy.
+  deploy:
+    name: Deploy
+    needs: [changes, maven, node]
+    if: >-
+      !cancelled() && !contains(needs.*.result, 'failure')
+      && needs.changes.outputs.built != '[]'
+      && ((github.event_name == 'push' && github.ref == 'refs/heads/main')
+          || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: dev
+      image-tag: ${{ needs.changes.outputs.image-tag }}
+      services: ${{ needs.changes.outputs.all }}
+      built: ${{ needs.changes.outputs.built }}
+
+  result:
+    name: CI result
+    needs: [changes, maven, node, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          case " $RESULTS " in
+            *" failure "* | *" cancelled "*) exit 1 ;;
+          esac

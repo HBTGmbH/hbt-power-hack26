@@ -1,0 +1,115 @@
+name: Maven service
+
+# Builds and tests one Maven folder (pwr-*-service) and builds its image; with `publish` it
+# pushes the image to the STACKIT Container Registry. Called by ci.yml, which also grants the
+# permissions: this workflow declares none, so it never gets more than its caller allows.
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: Folder of the service, e.g. pwr-skill-service
+        type: string
+        required: true
+      publish:
+        description: false = pull request (Maven cache, image without push), true = no cache, push
+        type: boolean
+        default: false
+      environment:
+        description: >-
+          GitHub environment with the STACKIT registry (publish only): variables STACKIT_REGISTRY
+          (host) and STACKIT_REGISTRY_PROJECT, secrets STACKIT_REGISTRY_USERNAME and
+          STACKIT_REGISTRY_PASSWORD (robot account with push rights)
+        type: string
+        default: ''
+      image-tag:
+        description: Tag of this commit (sha-<short sha>), pushed besides the branch name (publish only)
+        type: string
+        default: ''
+    # No `secrets:` here: the registry credentials are secrets of the environment the job enters,
+    # and they only reach a reusable workflow when the caller passes `secrets: inherit`. A
+    # declared secret the caller doesn't pass would be empty and hide the environment's value.
+
+jobs:
+  build:
+    name: ${{ inputs.publish && 'Build, test and publish image' || 'Build and test' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Only a publishing run enters the environment and sees the registry credentials
+    environment: ${{ inputs.publish && inputs.environment || '' }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.service }}
+    steps:
+      # Fails early and clearly if the environment lacks a value (e.g. in a fork)
+      - name: Check registry configuration
+        if: ${{ inputs.publish }}
+        working-directory: .  # before the checkout the service folder doesn't exist yet
+        env:
+          REGISTRY: ${{ vars.STACKIT_REGISTRY }}
+          PROJECT: ${{ vars.STACKIT_REGISTRY_PROJECT }}
+          HAS_USERNAME: ${{ secrets.STACKIT_REGISTRY_USERNAME != '' }}
+          HAS_PASSWORD: ${{ secrets.STACKIT_REGISTRY_PASSWORD != '' }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          missing=""
+          if [ -z "$REGISTRY" ]; then missing="$missing variable STACKIT_REGISTRY,"; fi
+          if [ -z "$PROJECT" ]; then missing="$missing variable STACKIT_REGISTRY_PROJECT,"; fi
+          if [ "$HAS_USERNAME" != true ]; then missing="$missing secret STACKIT_REGISTRY_USERNAME,"; fi
+          if [ "$HAS_PASSWORD" != true ]; then missing="$missing secret STACKIT_REGISTRY_PASSWORD,"; fi
+          if [ -n "$missing" ]; then
+            echo "::error::Environment '$ENVIRONMENT' lacks:${missing%,}"
+            exit 1
+          fi
+
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # JDK 13 from the root .java-version, as for jenv and mise locally. The Maven cache only
+      # for pull requests, so no cached dependency can end up in a published image.
+      - name: Set up JDK
+        uses: actions/setup-java@v6  # zizmor: ignore[cache-poisoning] cache only when the image is not pushed (!inputs.publish)
+        with:
+          distribution: zulu
+          java-version-file: .java-version
+          cache: ${{ !inputs.publish && 'maven' || '' }}
+          cache-dependency-path: ${{ inputs.service }}/pom.xml
+
+      # Compiles code and tests and packages the jar the image copies (target/<service>.jar)
+      - name: Build
+        run: ./mvnw -B package -DskipTests
+
+      # Runs every surefire execution (in the statistics service also the heap-limit one) on
+      # the classes compiled above
+      - name: Test
+        run: ./mvnw -B test
+
+      - name: Log in to STACKIT Container Registry
+        if: ${{ inputs.publish }}
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ vars.STACKIT_REGISTRY }}
+          username: ${{ secrets.STACKIT_REGISTRY_USERNAME }}
+          password: ${{ secrets.STACKIT_REGISTRY_PASSWORD }}
+
+      - name: Image tags and labels
+        if: ${{ inputs.publish }}
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ vars.STACKIT_REGISTRY }}/${{ vars.STACKIT_REGISTRY_PROJECT }}/${{ inputs.service }}
+          tags: |
+            type=ref,event=branch
+            type=raw,value=${{ inputs.image-tag }}
+
+      # Pull requests only check that the image builds
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.service }}
+          push: ${{ inputs.publish }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

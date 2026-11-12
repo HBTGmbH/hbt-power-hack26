@@ -1,0 +1,84 @@
+name: Deploy prod
+
+# Deploys to prod by hand what the last deployment of main to dev got: the set of images that
+# _deploy.yml kept as the artifact `deployment-dev` of a CI run on main. Only manually and only
+# from main: gh workflow run deploy-prod.yml --ref main [-f run-id=<CI run>]
+# A separate workflow on purpose: a CI run waiting for the approval of prod would hold the
+# concurrency group of main and block every following run there.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: CI run on main whose dev deployment to take over (default the last one)
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  actions: read  # read the runs and artifacts of CI
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  source:
+    name: Find dev deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      images: ${{ steps.find.outputs.images }}
+      source: ${{ steps.find.outputs.source }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Find images of the last dev deployment from main
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref }}
+          RUN_ID: ${{ inputs.run-id }}
+        run: |
+          set -euo pipefail
+          if [ "$REF" != refs/heads/main ]; then
+            echo "::error::prod is only deployed from main, not from $REF"
+            exit 1
+          fi
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID=$(gh api "repos/$REPO/actions/artifacts?name=deployment-dev&per_page=100" --jq '
+              [.artifacts[] | select((.expired | not) and .workflow_run.head_branch == "main")]
+              | sort_by(.created_at) | last | .workflow_run.id // empty')
+            if [ -z "$RUN_ID" ]; then
+              echo "::error::No deployment of main to dev found"
+              exit 1
+            fi
+          fi
+          if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::run-id must be the number of a CI run, not '$RUN_ID'"
+            exit 1
+          fi
+          read -r path branch sha < <(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq '"\(.path) \(.head_branch) \(.head_sha)"')
+          if [ "$path" != .github/workflows/ci.yml ] || [ "$branch" != main ]; then
+            echo "::error::Run $RUN_ID is no CI run on main ($path on $branch)"
+            exit 1
+          fi
+          gh run download "$RUN_ID" --repo "$REPO" --name deployment-dev --dir dev
+          images=$(jq -c . dev/images.json)
+          source="Images of the dev deployment in CI run [$RUN_ID]($GITHUB_SERVER_URL/$REPO/actions/runs/$RUN_ID), commit \`${sha::7}\`"
+          {
+            echo "images=$images"
+            echo "source=$source"
+          } >> "$GITHUB_OUTPUT"
+
+  # The environment `prod` should require a reviewer, so the deployment waits for an approval
+  deploy:
+    name: Deploy
+    needs: source
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: prod
+      images: ${{ needs.source.outputs.images }}
+      source: ${{ needs.source.outputs.source }}

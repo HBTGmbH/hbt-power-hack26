@@ -66,14 +66,21 @@ Alle Container liegen im Standardnetz des Compose-Projekts. Die Services erreich
 flowchart LR
     PR["Pull Request"] -->|"check: Build, Tests,<br/>Image ohne Push"| OK{grün?}
     OK -->|"Merge (Admin)"| MAIN["main"]
-    MAIN -->|"publish je geändertem Ordner<br/>ohne Cache, packages: write"| IMG["ghcr.io/hbtgmbh/hbt-power/&lt;ordner&gt;<br/>:main und :sha-&lt;commit&gt;"]
-    IMG -->|"Watchtower, ≤ 10 min"| LIVE["Produktion"]
+    MAIN -->|"publish je geändertem Ordner<br/>ohne Cache, Robot-Account"| IMG["STACKIT Container Registry<br/>&lt;registry&gt;/&lt;projekt&gt;/&lt;ordner&gt;<br/>:main und :sha-&lt;commit&gt;"]
+    BR["Branch, manuell<br/>(workflow_dispatch)"] -->|"alle Ordner"| IMG
+    IMG -->|"deploy: :sha-&lt;kurz&gt;, Rest :main<br/>(Ziel noch offen)"| DEV["dev"]
+    DEV -->|"manuell: Deploy prod<br/>derselbe Satz Images (Ziel noch offen)"| PROD["prod"]
+    IMG -.->|"Deployment folgt"| LIVE["Produktion"]
     LIVE -->|"/actuator/info, build_info.json"| CHECK["Stand prüfen"]
 ```
 
-- **Ein Workflow je Ordner** (`.github/workflows/<ordner>.yml`) mit Pfadfilter. Ein PR zeigt nur die Prüfungen der Ordner, die er ändert ([ADR-18](09-architekturentscheidungen.md#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish)).
-- **`check`** auf PRs: Lesetoken, Cache erlaubt, `mvn -B package` bzw. `npm ci && npm run build`, Image bauen ohne Push.
-- **`publish`** auf `main`: derselbe Build ohne Cache. Der Webclient schreibt zusätzlich `build_info.json`. Danach Push nach GHCR.
+- **Ein Workflow für alle Ordner** (`.github/workflows/ci.yml`): Der Job `changes` ermittelt die geänderten `pwr-*`-Ordner, je einer läuft als Eintrag einer Matrix. Die Build-Schritte stehen in den wiederverwendbaren Workflows `_maven-service.yml` und `_node-service.yml`. `CI result` fasst alles zu einer Prüfung zusammen, die als Pflicht-Check taugt ([ADR-28](09-architekturentscheidungen.md#adr-28-ein-ci-workflow-mit-änderungserkennung-und-wiederverwendbaren-build-workflows)).
+- **Ein Job je Ordner** (`build` im wiederverwendbaren Workflow), der mit `publish` zusätzlich pusht.
+- **Auf PRs:** Lesetoken, Cache erlaubt, Schritte *Build* (`./mvnw -B package -DskipTests`) und *Test* (`./mvnw -B test`) bzw. `npm ci && npm run build`, Image bauen ohne Push.
+- **Auf `main`:** derselbe Build ohne Cache. Der Webclient schreibt zusätzlich `build_info.json`. Danach Push in die STACKIT Container Registry. Host und Projekt stehen im GitHub-Environment `dev` in den Variablen `STACKIT_REGISTRY` und `STACKIT_REGISTRY_PROJECT`, die Zugangsdaten eines Robot-Accounts in den Secrets `STACKIT_REGISTRY_USERNAME` und `STACKIT_REGISTRY_PASSWORD`. Nur ein publizierender Lauf betritt das Environment; fehlt dort ein Wert, bricht er mit einer Liste des Fehlenden ab.
+- **Deployment nach `dev`** (`_deploy.yml`): nach jedem Push auf `main` und bei einem manuellen Lauf mit `deploy` von jedem Branch, etwa um einen Entwicklungsstand oder das Deployment selbst zu testen. Deployt wird ein vollständiger Satz: die gebauten Ordner mit `:sha-<kurzer Commit>`, die übrigen mit `:main`. Auf `dev` läuft, was zuletzt deployt wurde; der nächste Push auf `main` holt es zurück. Das Deployment ins Ziel selbst ist noch nicht umgesetzt, der Job listet nur die Images. Den deployten Satz hebt er als Artifact `deployment-<environment>` auf.
+- **Deployment nach `prod`** (`deploy-prod.yml`, *Deploy prod*): nur manuell und nur von `main`. Es übernimmt den Satz Images, den das letzte Deployment von `main` nach `dev` bekommen hat (Artifact `deployment-dev` des CI-Laufs, auf Wunsch eines älteren Laufs per `run-id`), und baut nichts neu. Ein eigener Workflow, weil ein Lauf von `ci.yml`, der auf die Freigabe von `prod` wartet, alle folgenden Läufe auf `main` aufhalten würde. Das Environment `prod` sollte eine Freigabe verlangen und nur `main` zulassen. Auch hier fehlt das Deployment ins Ziel noch; Images mit `:main` im Satz können bis dahin weitergerückt sein, das echte Deployment sollte sie deshalb auf Digests festlegen.
+- **Übergang:** Die Produktion zieht ihre Images per Watchtower noch aus GHCR ([7.1](#71-produktionsumgebung)), wohin die CI nicht mehr publiziert. Bis sie aus der STACKIT Container Registry zieht oder nach STACKIT umgezogen ist, bekommt sie keine neuen Stände.
 - **Merge ist Deployment:** Was vorher in der Umgebung passieren muss, steht im PR unter *Operations / Deployment Notes* und wird vor dem Merge erledigt: SQL-Skript, neue Umgebungsvariable, Redis-Migration.
 - **Stand prüfen:** Jeder Service zeigt seinen Commit unter `/actuator/info`, der Webclient in `build_info.json`. Das Info-Symbol der App zeigt alle zusammen (#71).
 - **Austausch:** Watchtower erzeugt jeden geänderten Container neu, ohne Rolling Update. Während ein Container neu startet, antwortet er kurz nicht. Beim Webclient sind das etwa 30 bis 60 Sekunden mit 502.
