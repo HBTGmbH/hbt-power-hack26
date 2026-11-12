@@ -26,13 +26,9 @@ on:
         description: Tag of this commit (sha-<short sha>), pushed besides the branch name (publish only)
         type: string
         default: ''
-    # Declared for actionlint only: the job reads them from its environment, which a caller
-    # can't pass on (a job calling a reusable workflow can't have an environment).
-    secrets:
-      STACKIT_REGISTRY_USERNAME:
-        required: false
-      STACKIT_REGISTRY_PASSWORD:
-        required: false
+    # No `secrets:` here: the registry credentials are secrets of the environment the job enters,
+    # and they only reach a reusable workflow when the caller passes `secrets: inherit`. A
+    # declared secret the caller doesn't pass would be empty and hide the environment's value.
 
 jobs:
   build:

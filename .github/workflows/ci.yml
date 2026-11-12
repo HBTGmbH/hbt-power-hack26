@@ -127,6 +127,9 @@ jobs:
       publish: ${{ github.event_name != 'pull_request' }}
       environment: dev
       image-tag: ${{ needs.changes.outputs.image-tag }}
+    # Environment secrets reach a reusable workflow only this way; only the publishing job of
+    # our own workflow enters the environment `dev` and reads them.
+    secrets: inherit  # zizmor: ignore[secrets-inherit] needed for the secrets of the environment dev
 
   node:
     name: ${{ matrix.service }}
@@ -142,6 +145,9 @@ jobs:
       publish: ${{ github.event_name != 'pull_request' }}
       environment: dev
       image-tag: ${{ needs.changes.outputs.image-tag }}
+    # Environment secrets reach a reusable workflow only this way; only the publishing job of
+    # our own workflow enters the environment `dev` and reads them.
+    secrets: inherit  # zizmor: ignore[secrets-inherit] needed for the secrets of the environment dev
 
   # After every push to main, and on a manual run with `deploy` from any branch. Only if every
   # build succeeded and at least one image was built. The environment's deployment branch rules
