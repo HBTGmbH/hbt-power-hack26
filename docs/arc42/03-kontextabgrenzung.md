@@ -30,6 +30,8 @@ flowchart LR
 
 Die Kürzel (`initials`) verbinden Konto und Berater: Das Kürzel aus dem Claim `mailnickname` öffnet das eigene Profil (#135). Ein Berater ohne Konto kann von Admins gepflegt werden, ein Konto ohne Berater bekommt einen Hinweis.
 
+**Nicht Teil von HBT Power** sind Zeiterfassung und Abrechnung, Einsatz- und Ressourcenplanung (Staffing) sowie Personaldaten (HR). Diese Daten führen andere Systeme der HBT, zum Beispiel Salat für die Zeiterfassung. Power kann sie später lesen (On-Behalf-Of, [ADR-24](09-architekturentscheidungen.md#adr-24-spring-security-in-den-backend-services-erst-mit-eigener-tokenprüfung)), führt sie aber nicht selbst.
+
 ## 3.2 Technischer Kontext
 
 ```mermaid
