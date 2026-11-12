@@ -3,7 +3,8 @@ name: CI
 # One workflow for all folders pwr-*: `changes` finds the folders a run touches, the build
 # steps live in the reusable workflows _maven-service.yml (folders with a pom.xml) and
 # _node-service.yml (folders with a package.json). `deploy` (_deploy.yml) deploys the images to
-# dev: after every push to main, and from any branch on a manual run with `deploy`.
+# dev: after every push to main, and from any branch on a manual run with `deploy`. What main
+# deployed to dev goes to prod by hand through deploy-prod.yml.
 # `CI result` sums up every run and is the one check to require for merging.
 
 on:

@@ -1,29 +1,40 @@
 name: Deploy
 
-# Deploys a complete set of images to one GitHub environment: the folders built in this run
-# with the tag of this commit, every other folder with `main` (the last state of main).
-# Called by ci.yml. The actual deployment to the target is not implemented yet: the job
-# only plans and reports the images. It declares no permissions, so it gets what ci.yml grants.
+# Deploys a complete set of images to one GitHub environment. Either it plans the set itself
+# (ci.yml, to dev: the folders built in this run with the tag of this commit, every other folder
+# with `main`), or it gets the set as `images` (deploy-prod.yml, to prod: the set the last
+# deployment of main to dev got). Every deployment keeps its set as the artifact
+# `deployment-<environment>`, so a later one can take it over. The actual deployment to the
+# target is not implemented yet: the job only plans and reports the images. It declares no
+# permissions, so it gets what its caller grants.
 
 on:
   workflow_call:
     inputs:
       environment:
-        description: GitHub environment to deploy to (holds the registry variables)
+        description: GitHub environment to deploy to
         type: string
         required: true
+      images:
+        description: JSON array of {service, image} to deploy as given; if empty, planned from the inputs below
+        type: string
+        default: ''
       image-tag:
         description: Tag of the images built in this run (sha-<short sha>)
         type: string
-        required: true
+        default: ''
       services:
         description: JSON array of every folder with an image
         type: string
-        required: true
+        default: '[]'
       built:
         description: JSON array of the folders built in this run
         type: string
-        required: true
+        default: '[]'
+      source:
+        description: Where the images come from, for the job summary
+        type: string
+        default: ''
 
 jobs:
   deploy:
@@ -44,23 +55,36 @@ jobs:
         env:
           REGISTRY: ${{ vars.STACKIT_REGISTRY }}
           PROJECT: ${{ vars.STACKIT_REGISTRY_PROJECT }}
+          GIVEN: ${{ inputs.images }}
           IMAGE_TAG: ${{ inputs.image-tag }}
           SERVICES: ${{ inputs.services }}
           BUILT: ${{ inputs.built }}
           ENVIRONMENT: ${{ inputs.environment }}
+          SOURCE: ${{ inputs.source }}
           REF: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          if [ -z "$REGISTRY" ] || [ -z "$PROJECT" ]; then
-            echo "::error::Environment '$ENVIRONMENT' lacks STACKIT_REGISTRY or STACKIT_REGISTRY_PROJECT"
+          if [ -n "$GIVEN" ]; then
+            images=$(jq -c . <<<"$GIVEN")
+          else
+            if [ -z "$REGISTRY" ] || [ -z "$PROJECT" ] || [ -z "$IMAGE_TAG" ]; then
+              echo "::error::Environment '$ENVIRONMENT' lacks STACKIT_REGISTRY or STACKIT_REGISTRY_PROJECT, or no image tag was given"
+              exit 1
+            fi
+            images=$(jq -c --arg prefix "$REGISTRY/$PROJECT" --arg tag "$IMAGE_TAG" --argjson built "$BUILT" '
+              map({ service: ., image: "\($prefix)/\(.):\(if (. as $s | $built | index($s)) then $tag else "main" end)" })
+            ' <<<"$SERVICES")
+          fi
+          if [ "$(jq 'length' <<<"$images")" -eq 0 ]; then
+            echo "::error::No images to deploy"
             exit 1
           fi
-          images=$(jq -c --arg prefix "$REGISTRY/$PROJECT" --arg tag "$IMAGE_TAG" --argjson built "$BUILT" '
-            map({ service: ., image: "\($prefix)/\(.):\(if (. as $s | $built | index($s)) then $tag else "main" end)" })
-          ' <<<"$SERVICES")
           echo "images=$images" >> "$GITHUB_OUTPUT"
+          mkdir -p deployment
+          jq . <<<"$images" > deployment/images.json
           {
             echo "### Deployment to \`$ENVIRONMENT\` from \`$REF\`"
+            if [ -n "$SOURCE" ]; then echo; echo "$SOURCE"; fi
             echo
             echo "| Service | Image |"
             echo "|---|---|"
@@ -68,7 +92,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # Placeholder until the target (STACKIT) is decided: replace this step with the deployment
-      # of the images in steps.plan.outputs.images (JSON array of {service, image}).
+      # of the images in steps.plan.outputs.images (JSON array of {service, image}). Images
+      # tagged `:main` can move on before prod takes the set over; the real deployment should
+      # resolve them to digests here, so prod gets exactly what dev got.
       - name: Deploy
         env:
           IMAGES: ${{ steps.plan.outputs.images }}
@@ -76,3 +102,12 @@ jobs:
         run: |
           echo "::notice::Deployment to '$ENVIRONMENT' is not implemented yet; it would deploy:"
           jq -r '.[] | "  \(.image)"' <<<"$IMAGES"
+
+      # The deployed set, for deploy-prod.yml to take over (only after a successful deployment)
+      - name: Keep deployed images
+        uses: actions/upload-artifact@v7
+        with:
+          name: deployment-${{ inputs.environment }}
+          path: deployment/images.json
+          if-no-files-found: error
+          retention-days: 90
