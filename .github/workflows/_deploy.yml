@@ -1,0 +1,78 @@
+name: Deploy
+
+# Deploys a complete set of images to one GitHub environment: the folders built in this run
+# with the tag of this commit, every other folder with `main` (the last state of main).
+# Called by ci.yml. The actual deployment to the target is not implemented yet: the job
+# only plans and reports the images. It declares no permissions, so it gets what ci.yml grants.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment to deploy to (holds the registry variables)
+        type: string
+        required: true
+      image-tag:
+        description: Tag of the images built in this run (sha-<short sha>)
+        type: string
+        required: true
+      services:
+        description: JSON array of every folder with an image
+        type: string
+        required: true
+      built:
+        description: JSON array of the folders built in this run
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    # One deployment per environment at a time; a waiting one is not dropped
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Plan images
+        id: plan
+        env:
+          REGISTRY: ${{ vars.STACKIT_REGISTRY }}
+          PROJECT: ${{ vars.STACKIT_REGISTRY_PROJECT }}
+          IMAGE_TAG: ${{ inputs.image-tag }}
+          SERVICES: ${{ inputs.services }}
+          BUILT: ${{ inputs.built }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ -z "$REGISTRY" ] || [ -z "$PROJECT" ]; then
+            echo "::error::Environment '$ENVIRONMENT' lacks STACKIT_REGISTRY or STACKIT_REGISTRY_PROJECT"
+            exit 1
+          fi
+          images=$(jq -c --arg prefix "$REGISTRY/$PROJECT" --arg tag "$IMAGE_TAG" --argjson built "$BUILT" '
+            map({ service: ., image: "\($prefix)/\(.):\(if (. as $s | $built | index($s)) then $tag else "main" end)" })
+          ' <<<"$SERVICES")
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Deployment to \`$ENVIRONMENT\` from \`$REF\`"
+            echo
+            echo "| Service | Image |"
+            echo "|---|---|"
+            jq -r '.[] | "| \(.service) | `\(.image)` |"' <<<"$images"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Placeholder until the target (STACKIT) is decided: replace this step with the deployment
+      # of the images in steps.plan.outputs.images (JSON array of {service, image}).
+      - name: Deploy
+        env:
+          IMAGES: ${{ steps.plan.outputs.images }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          echo "::notice::Deployment to '$ENVIRONMENT' is not implemented yet; it would deploy:"
+          jq -r '.[] | "  \(.image)"' <<<"$IMAGES"

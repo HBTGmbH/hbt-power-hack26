@@ -421,4 +421,4 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - `CI result` kann als Pflicht-Check eingerichtet werden.
   - Eine Änderung an `ci.yml` oder einem `_*.yml` baut alle Ordner.
   - Die Produktion zieht noch aus GHCR und bekommt bis zu ihrem Umzug keine neuen Stände.
-  - Ein Deployment nach STACKIT kann später als eigener Job an dieselben Ergebnisse anschließen.
+  - Der Job `deploy` (`_deploy.yml`) bringt die Images nach `dev`: nach jedem Push auf `main` und manuell von jedem Branch. Das Deployment ins Ziel auf STACKIT selbst fehlt noch.

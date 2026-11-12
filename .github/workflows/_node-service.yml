@@ -22,6 +22,10 @@ on:
           STACKIT_REGISTRY_PASSWORD (robot account with push rights)
         type: string
         default: ''
+      image-tag:
+        description: Tag of this commit (sha-<short sha>), pushed besides the branch name (publish only)
+        type: string
+        default: ''
     # Declared for actionlint only: the job reads them from its environment, which a caller
     # can't pass on (a job calling a reusable workflow can't have an environment).
     secrets:
@@ -107,7 +111,7 @@ jobs:
           images: ${{ vars.STACKIT_REGISTRY }}/${{ vars.STACKIT_REGISTRY_PROJECT }}/${{ inputs.service }}
           tags: |
             type=ref,event=branch
-            type=sha
+            type=raw,value=${{ inputs.image-tag }}
 
       # Pull requests only check that the image builds
       - name: Build image

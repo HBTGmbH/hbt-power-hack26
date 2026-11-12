@@ -2,8 +2,9 @@ name: CI
 
 # One workflow for all folders pwr-*: `changes` finds the folders a run touches, the build
 # steps live in the reusable workflows _maven-service.yml (folders with a pom.xml) and
-# _node-service.yml (folders with a package.json). `CI result` sums up every run and is
-# the one check to require for merging.
+# _node-service.yml (folders with a package.json). `deploy` (_deploy.yml) deploys the images to
+# dev: after every push to main, and from any branch on a manual run with `deploy`.
+# `CI result` sums up every run and is the one check to require for merging.
 
 on:
   push:
@@ -12,7 +13,14 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # builds every folder
+  # Builds and publishes every folder of the chosen branch, e.g. to try a branch on dev:
+  # gh workflow run ci.yml --ref <branch> -f deploy=true
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the images of this branch to dev
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -34,6 +42,9 @@ jobs:
     outputs:
       maven: ${{ steps.detect.outputs.maven }}
       node: ${{ steps.detect.outputs.node }}
+      built: ${{ steps.detect.outputs.built }}
+      all: ${{ steps.detect.outputs.all }}
+      image-tag: ${{ steps.detect.outputs.image-tag }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -76,12 +87,23 @@ jobs:
           to_json() { jq -Rnc '[inputs | select(length > 0)]'; }
           maven=$(for d in $changed; do if [ -f "$d/pom.xml" ]; then echo "$d"; fi; done | to_json)
           node=$(for d in $changed; do if [ -f "$d/package.json" ]; then echo "$d"; fi; done | to_json)
-          echo "maven=$maven" >> "$GITHUB_OUTPUT"
-          echo "node=$node" >> "$GITHUB_OUTPUT"
+          built=$(jq -nc --argjson a "$maven" --argjson b "$node" '$a + $b')
+          # Every folder with an image, for the deployment of a complete set
+          all_images=$(for d in $all; do if [ -f "$d/pom.xml" ] || [ -f "$d/package.json" ]; then echo "$d"; fi; done | to_json)
+          # The one image tag of this commit, for the build and the deployment alike
+          image_tag="sha-${GITHUB_SHA::7}"
+          {
+            echo "maven=$maven"
+            echo "node=$node"
+            echo "built=$built"
+            echo "all=$all_images"
+            echo "image-tag=$image_tag"
+          } >> "$GITHUB_OUTPUT"
           {
             echo "### Folders to build"
             echo "- Maven: \`$maven\`"
             echo "- Node: \`$node\`"
+            echo "- Image tag: \`$image_tag\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # Pull requests: dependency caches allowed, images built but not pushed, no registry credentials.
@@ -101,6 +123,7 @@ jobs:
       service: ${{ matrix.service }}
       publish: ${{ github.event_name != 'pull_request' }}
       environment: dev
+      image-tag: ${{ needs.changes.outputs.image-tag }}
 
   node:
     name: ${{ matrix.service }}
@@ -115,10 +138,29 @@ jobs:
       service: ${{ matrix.service }}
       publish: ${{ github.event_name != 'pull_request' }}
       environment: dev
+      image-tag: ${{ needs.changes.outputs.image-tag }}
+
+  # After every push to main, and on a manual run with `deploy` from any branch. Only if every
+  # build succeeded and at least one image was built. The environment's deployment branch rules
+  # decide which branches may deploy.
+  deploy:
+    name: Deploy
+    needs: [changes, maven, node]
+    if: >-
+      !cancelled() && !contains(needs.*.result, 'failure')
+      && needs.changes.outputs.built != '[]'
+      && ((github.event_name == 'push' && github.ref == 'refs/heads/main')
+          || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: dev
+      image-tag: ${{ needs.changes.outputs.image-tag }}
+      services: ${{ needs.changes.outputs.all }}
+      built: ${{ needs.changes.outputs.built }}
 
   result:
     name: CI result
-    needs: [changes, maven, node]
+    needs: [changes, maven, node, deploy]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
