@@ -84,12 +84,14 @@ jobs:
             echo "- Node: \`$node\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Pull requests: read-only token, dependency caches allowed, images built but not pushed
+  # Pull requests: dependency caches allowed, images built but not pushed, no registry credentials.
+  # main (and manual runs): no dependency caches, push to the STACKIT Container Registry; the
+  # registry and its credentials come from the GitHub environment `dev`, which only these runs enter.
 
-  maven-check:
+  maven:
     name: ${{ matrix.service }}
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.maven != '[]'
+    if: needs.changes.outputs.maven != '[]'
     strategy:
       fail-fast: false
       matrix:
@@ -97,47 +99,13 @@ jobs:
     uses: ./.github/workflows/_maven-service.yml
     with:
       service: ${{ matrix.service }}
-      publish: false
-
-  node-check:
-    name: ${{ matrix.service }}
-    needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.node != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJSON(needs.changes.outputs.node) }}
-    uses: ./.github/workflows/_node-service.yml
-    with:
-      service: ${{ matrix.service }}
-      publish: false
-
-  # main (and manual runs): build without dependency caches and push to the STACKIT Container
-  # Registry. The registry and its credentials come from the GitHub environment `dev`, which only
-  # the publish jobs of the reusable workflows enter; pull requests never see them.
-
-  maven-publish:
-    name: ${{ matrix.service }}
-    needs: changes
-    if: >-
-      github.event_name != 'pull_request'
-      && needs.changes.outputs.maven != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJSON(needs.changes.outputs.maven) }}
-    uses: ./.github/workflows/_maven-service.yml
-    with:
-      service: ${{ matrix.service }}
-      publish: true
+      publish: ${{ github.event_name != 'pull_request' }}
       environment: dev
 
-  node-publish:
+  node:
     name: ${{ matrix.service }}
     needs: changes
-    if: >-
-      github.event_name != 'pull_request'
-      && needs.changes.outputs.node != '[]'
+    if: needs.changes.outputs.node != '[]'
     strategy:
       fail-fast: false
       matrix:
@@ -145,12 +113,12 @@ jobs:
     uses: ./.github/workflows/_node-service.yml
     with:
       service: ${{ matrix.service }}
-      publish: true
+      publish: ${{ github.event_name != 'pull_request' }}
       environment: dev
 
   result:
     name: CI result
-    needs: [changes, maven-check, node-check, maven-publish, node-publish]
+    needs: [changes, maven, node]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

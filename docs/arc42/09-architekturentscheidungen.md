@@ -412,8 +412,8 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Ein neuer Ordner brauchte einen eigenen Workflow.
 - **Entscheidung:**
   - Ein Workflow `ci.yml`. Der Job `changes` ermittelt die geänderten `pwr-*`-Ordner aus dem Diff; Ordner mit `pom.xml` laufen in einer Maven-Matrix, Ordner mit `package.json` in einer Node-Matrix.
-  - Die Build-Schritte stehen in wiederverwendbaren Workflows (`_maven-service.yml`, `_node-service.yml`) mit getrennten Jobs `check` (Cache, Image ohne Push) und `publish` (ohne Cache, Push). Nur die aufrufenden Publish-Jobs in `ci.yml` bekommen die Zugangsdaten der Registry.
-  - Die Images gehen in die STACKIT Container Registry statt nach GHCR. Host, Projekt und die Zugangsdaten eines Robot-Accounts kommen aus dem GitHub-Environment `dev`, das nur die `publish`-Jobs betreten.
+  - Die Build-Schritte stehen in wiederverwendbaren Workflows (`_maven-service.yml`, `_node-service.yml`) mit einem Job je Ordner: auf PRs mit Cache und Image ohne Push, auf `main` ohne Cache und mit Push. Nur ein publizierender Lauf bekommt die Zugangsdaten der Registry.
+  - Die Images gehen in die STACKIT Container Registry statt nach GHCR. Host, Projekt und die Zugangsdaten eines Robot-Accounts kommen aus dem GitHub-Environment `dev`, das nur publizierende Läufe betreten.
   - Der Job `CI result` läuft immer und fasst alle Ergebnisse zusammen.
   - Weiter gilt aus ADR-18: Actions nach fester Regel gepinnt, actionlint und zizmor prüfen die Workflows, Dependabot aktualisiert nur Actions.
 - **Konsequenzen:**

@@ -1,9 +1,8 @@
 name: Maven service
 
-# Builds and tests one Maven folder (pwr-*-service) and its image; publish pushes it to the
-# STACKIT Container Registry. Called by ci.yml, which
-# also grants the permissions: this workflow declares none, so it never gets more than its
-# caller allows. Two separate jobs, so the job that pushes the image never has a cache.
+# Builds and tests one Maven folder (pwr-*-service) and builds its image; with `publish` it
+# pushes the image to the STACKIT Container Registry. Called by ci.yml, which also grants the
+# permissions: this workflow declares none, so it never gets more than its caller allows.
 
 on:
   workflow_call:
@@ -13,7 +12,7 @@ on:
         type: string
         required: true
       publish:
-        description: false = check (cache, image without push), true = publish (no cache, push)
+        description: false = pull request (Maven cache, image without push), true = no cache, push
         type: boolean
         default: false
       environment:
@@ -23,8 +22,8 @@ on:
           STACKIT_REGISTRY_PASSWORD (robot account with push rights)
         type: string
         default: ''
-    # Declared for actionlint only: the publish job reads them from its environment, which a
-    # caller can't pass on (a job calling a reusable workflow can't have an environment).
+    # Declared for actionlint only: the job reads them from its environment, which a caller
+    # can't pass on (a job calling a reusable workflow can't have an environment).
     secrets:
       STACKIT_REGISTRY_USERNAME:
         required: false
@@ -32,52 +31,12 @@ on:
         required: false
 
 jobs:
-  check:
-    name: Build and test
-    if: ${{ !inputs.publish }}
+  build:
+    name: ${{ inputs.publish && 'Build, test and publish image' || 'Build and test' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ inputs.service }}
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      # JDK 13 from the root .java-version, as for jenv and mise locally
-      - name: Set up JDK
-        uses: actions/setup-java@v6
-        with:
-          distribution: zulu
-          java-version-file: .java-version
-          cache: maven
-          cache-dependency-path: ${{ inputs.service }}/pom.xml
-
-      # Compiles code and tests and packages the jar the image copies (target/<service>.jar)
-      - name: Build
-        run: ./mvnw -B package -DskipTests
-
-      # Runs every surefire execution (in the statistics service also the heap-limit one) on
-      # the classes compiled above
-      - name: Test
-        run: ./mvnw -B test
-
-      # Only checks that the image builds; images are published from main
-      - name: Build image
-        uses: docker/build-push-action@v7
-        with:
-          context: ${{ inputs.service }}
-          push: false
-
-  publish:
-    name: Build, test and publish image
-    if: ${{ inputs.publish }}
-    environment: ${{ inputs.environment }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Only a publishing run enters the environment and sees the registry credentials
+    environment: ${{ inputs.publish && inputs.environment || '' }}
     defaults:
       run:
         shell: bash
@@ -85,6 +44,7 @@ jobs:
     steps:
       # Fails early and clearly if the environment lacks a value (e.g. in a fork)
       - name: Check registry configuration
+        if: ${{ inputs.publish }}
         working-directory: .  # before the checkout the service folder doesn't exist yet
         env:
           REGISTRY: ${{ vars.STACKIT_REGISTRY }}
@@ -108,12 +68,15 @@ jobs:
         with:
           persist-credentials: false
 
-      # No Maven cache when publishing, so no cached dependency can end up in the image
+      # JDK 13 from the root .java-version, as for jenv and mise locally. The Maven cache only
+      # for pull requests, so no cached dependency can end up in a published image.
       - name: Set up JDK
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6  # zizmor: ignore[cache-poisoning] cache only when the image is not pushed (!inputs.publish)
         with:
           distribution: zulu
           java-version-file: .java-version
+          cache: ${{ !inputs.publish && 'maven' || '' }}
+          cache-dependency-path: ${{ inputs.service }}/pom.xml
 
       # Compiles code and tests and packages the jar the image copies (target/<service>.jar)
       - name: Build
@@ -125,6 +88,7 @@ jobs:
         run: ./mvnw -B test
 
       - name: Log in to STACKIT Container Registry
+        if: ${{ inputs.publish }}
         uses: docker/login-action@v4
         with:
           registry: ${{ vars.STACKIT_REGISTRY }}
@@ -132,6 +96,7 @@ jobs:
           password: ${{ secrets.STACKIT_REGISTRY_PASSWORD }}
 
       - name: Image tags and labels
+        if: ${{ inputs.publish }}
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -140,10 +105,11 @@ jobs:
             type=ref,event=branch
             type=sha
 
-      - name: Build and push image
+      # Pull requests only check that the image builds
+      - name: Build image
         uses: docker/build-push-action@v7
         with:
           context: ${{ inputs.service }}
-          push: true
+          push: ${{ inputs.publish }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -72,7 +72,7 @@ flowchart LR
 | Edge → Entra ID | HTTPS | Die Signaturschlüssel kommen über den konfigurierten Issuer (`spring.security.oauth2.resourceserver.jwt.issuer-uri`). |
 | Edge → Services | HTTP im Container-Netz | Die Routen `/pwr-<service>/**`; die Edge setzt `X-Pwr-User-Login` und `X-Pwr-User-Initials` aus dem Token. |
 | Services ↔ Services | HTTP, `RestTemplate` | Direkt, nicht über die Edge ([Kapitel 5](05-bausteinsicht.md#53-abhängigkeiten-zwischen-den-services)). |
-| GitHub Actions → STACKIT Container Registry | Docker Registry | Der `publish`-Job jedes geänderten Ordners schiebt `:main` und `:sha-<commit>` (ADR-28). |
+| GitHub Actions → STACKIT Container Registry | Docker Registry | Der Build-Job jedes geänderten Ordners schiebt auf `main` `:main` und `:sha-<commit>` (ADR-28). |
 | Watchtower → GHCR | Docker Registry | Zieht neue `:main`-Images und erzeugt die Container neu. GHCR bekommt seit dem Wechsel zu STACKIT keine neuen Images mehr ([Kapitel 7.2](07-verteilungssicht.md#72-vom-merge-in-die-produktion)). |
 
 Es gibt keine weiteren Fremdsysteme: Weder Mails noch Kalender noch HR-Systeme sind angebunden. Berater legen Admins von Hand an.
