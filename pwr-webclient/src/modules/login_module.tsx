@@ -80,7 +80,7 @@ class Login_module extends React.Component<LoginProps & LoginLocalProps & LoginD
                                 </div>
                             </div>
                             <div className="vertical-align">
-                                <h1 className="pwr-heading">{PowerLocalize.get('Login.Title')}</h1>
+                                <h1>{PowerLocalize.get('Login.Title')}</h1>
                             </div>
                             <div className="vertical-align">
                                 <div className="fittingContainer">

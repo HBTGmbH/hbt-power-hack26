@@ -76,15 +76,6 @@ const newPowerTheme: ThemeOptions = {
                 resize: 'vertical'
             }
         },
-        // Headings in the HBT dark blue, the same as the primary colour (#191E55, 15:1 on white)
-        MuiTypography: {
-            h1: {color: '#191E55'},
-            h2: {color: '#191E55'},
-            h3: {color: '#191E55'},
-            h4: {color: '#191E55'},
-            h5: {color: '#191E55'},
-            h6: {color: '#191E55'}
-        },
         MuiTabs: {
             root: {
                 color: '#fff',

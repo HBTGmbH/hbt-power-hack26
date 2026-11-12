@@ -193,7 +193,7 @@ class ViewProfileGenerator extends React.Component<ViewProfileGeneratorProps
                 <DialogContent>
                     {this.renderOutdatedHints()}
                     <div className="col-md-4">
-                        <h4 className="row pwr-heading">{PowerLocalize.get('Generator.TemplateList')}</h4>
+                        <h4 className="row">{PowerLocalize.get('Generator.TemplateList')}</h4>
                         <div className="row">
                             <List>
                                 <PwrSelectableList>
@@ -203,7 +203,7 @@ class ViewProfileGenerator extends React.Component<ViewProfileGeneratorProps
                         </div>
                     </div>
                     <div className="col-md-8">
-                        <h4 className="row pwr-heading"
+                        <h4 className="row"
                             style={{marginLeft: '2px'}}> {this.state.activeTemplateId !== '' ? this.props.allTemplates[this.state.activeTemplateNumber].name : ' '} </h4>
                         {/* Full height of the screen: title and template name above (~130px), description and button bar below (~110px) */}
                         <div className={'row'} style={{marginLeft: '2px', height: 'calc(100vh - 240px)'}}>
