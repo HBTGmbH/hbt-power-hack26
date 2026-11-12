@@ -412,11 +412,13 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Ein neuer Ordner brauchte einen eigenen Workflow.
 - **Entscheidung:**
   - Ein Workflow `ci.yml`. Der Job `changes` ermittelt die geänderten `pwr-*`-Ordner aus dem Diff; Ordner mit `pom.xml` laufen in einer Maven-Matrix, Ordner mit `package.json` in einer Node-Matrix.
-  - Die Build-Schritte stehen in wiederverwendbaren Workflows (`_maven-service.yml`, `_node-service.yml`) mit getrennten Jobs `check` (Cache, Image ohne Push) und `publish` (ohne Cache, Push). Nur die aufrufenden Publish-Jobs in `ci.yml` bekommen `packages: write`.
+  - Die Build-Schritte stehen in wiederverwendbaren Workflows (`_maven-service.yml`, `_node-service.yml`) mit getrennten Jobs `check` (Cache, Image ohne Push) und `publish` (ohne Cache, Push). Nur die aufrufenden Publish-Jobs in `ci.yml` bekommen die Zugangsdaten der Registry.
+  - Die Images gehen in die STACKIT Container Registry statt nach GHCR. Host, Projekt und die Zugangsdaten eines Robot-Accounts kommen aus dem GitHub-Environment `dev`, das nur die `publish`-Jobs betreten.
   - Der Job `CI result` läuft immer und fasst alle Ergebnisse zusammen.
   - Weiter gilt aus ADR-18: Actions nach fester Regel gepinnt, actionlint und zizmor prüfen die Workflows, Dependabot aktualisiert nur Actions.
 - **Konsequenzen:**
   - Ein PR baut und testet weiterhin nur die Ordner, die er ändert; jeder Ordner hat seine eigene Prüfung (`<ordner> / Build and test`) und sein eigenes Image ([ADR-01](#adr-01-monorepo-mit-eigenständigen-projekten-je-ordner) bleibt).
   - `CI result` kann als Pflicht-Check eingerichtet werden.
   - Eine Änderung an `ci.yml` oder einem `_*.yml` baut alle Ordner.
-  - Ein Deployment (z. B. nach STACKIT) kann später als eigener Job an dieselben Ergebnisse anschließen.
+  - Die Produktion zieht noch aus GHCR und bekommt bis zu ihrem Umzug keine neuen Stände.
+  - Ein Deployment nach STACKIT kann später als eigener Job an dieselben Ergebnisse anschließen.

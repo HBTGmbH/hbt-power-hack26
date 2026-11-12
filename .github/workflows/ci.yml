@@ -112,18 +112,16 @@ jobs:
       service: ${{ matrix.service }}
       publish: false
 
-  # main (and manual runs): the only jobs with packages: write, without dependency caches.
-  # Hackathon 2026: only the upstream repository publishes images, never this fork (also not manually).
+  # main (and manual runs): build without dependency caches and push to the STACKIT Container
+  # Registry. The registry and its credentials come from the GitHub environment `dev`, which only
+  # the publish jobs of the reusable workflows enter; pull requests never see them.
 
   maven-publish:
     name: ${{ matrix.service }}
     needs: changes
     if: >-
-      github.event_name != 'pull_request' && github.repository == 'HBTGmbH/hbt-power'
+      github.event_name != 'pull_request'
       && needs.changes.outputs.maven != '[]'
-    permissions:
-      contents: read
-      packages: write  # pushes the image to ghcr.io
     strategy:
       fail-fast: false
       matrix:
@@ -132,16 +130,14 @@ jobs:
     with:
       service: ${{ matrix.service }}
       publish: true
+      environment: dev
 
   node-publish:
     name: ${{ matrix.service }}
     needs: changes
     if: >-
-      github.event_name != 'pull_request' && github.repository == 'HBTGmbH/hbt-power'
+      github.event_name != 'pull_request'
       && needs.changes.outputs.node != '[]'
-    permissions:
-      contents: read
-      packages: write  # pushes the image to ghcr.io
     strategy:
       fail-fast: false
       matrix:
@@ -150,6 +146,7 @@ jobs:
     with:
       service: ${{ matrix.service }}
       publish: true
+      environment: dev
 
   result:
     name: CI result

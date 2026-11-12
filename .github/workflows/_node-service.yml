@@ -1,6 +1,7 @@
 name: Node service
 
-# Builds one npm folder (pwr-webclient) and its image. Called by ci.yml, which also grants
+# Builds one npm folder (pwr-webclient) and its image; publish pushes it to the STACKIT
+# Container Registry. Called by ci.yml, which also grants
 # the permissions: this workflow declares none, so it never gets more than its caller
 # allows. Two separate jobs, so the job that pushes the image never has a cache.
 
@@ -15,6 +16,20 @@ on:
         description: false = check (cache, image without push), true = publish (no cache, push)
         type: boolean
         default: false
+      environment:
+        description: >-
+          GitHub environment with the STACKIT registry (publish only): variables STACKIT_REGISTRY
+          (host) and STACKIT_REGISTRY_PROJECT, secrets STACKIT_REGISTRY_USERNAME and
+          STACKIT_REGISTRY_PASSWORD (robot account with push rights)
+        type: string
+        default: ''
+    # Declared for actionlint only: the publish job reads them from its environment, which a
+    # caller can't pass on (a job calling a reusable workflow can't have an environment).
+    secrets:
+      STACKIT_REGISTRY_USERNAME:
+        required: false
+      STACKIT_REGISTRY_PASSWORD:
+        required: false
 
 jobs:
   check:
@@ -56,6 +71,7 @@ jobs:
   publish:
     name: Build and publish image
     if: ${{ inputs.publish }}
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -63,6 +79,26 @@ jobs:
         shell: bash
         working-directory: ${{ inputs.service }}
     steps:
+      # Fails early and clearly if the environment lacks a value (e.g. in a fork)
+      - name: Check registry configuration
+        working-directory: .  # before the checkout the service folder doesn't exist yet
+        env:
+          REGISTRY: ${{ vars.STACKIT_REGISTRY }}
+          PROJECT: ${{ vars.STACKIT_REGISTRY_PROJECT }}
+          HAS_USERNAME: ${{ secrets.STACKIT_REGISTRY_USERNAME != '' }}
+          HAS_PASSWORD: ${{ secrets.STACKIT_REGISTRY_PASSWORD != '' }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          missing=""
+          if [ -z "$REGISTRY" ]; then missing="$missing variable STACKIT_REGISTRY,"; fi
+          if [ -z "$PROJECT" ]; then missing="$missing variable STACKIT_REGISTRY_PROJECT,"; fi
+          if [ "$HAS_USERNAME" != true ]; then missing="$missing secret STACKIT_REGISTRY_USERNAME,"; fi
+          if [ "$HAS_PASSWORD" != true ]; then missing="$missing secret STACKIT_REGISTRY_PASSWORD,"; fi
+          if [ -n "$missing" ]; then
+            echo "::error::Environment '$ENVIRONMENT' lacks:${missing%,}"
+            exit 1
+          fi
+
       - name: Check out repository
         uses: actions/checkout@v7
         with:
@@ -87,18 +123,18 @@ jobs:
         env:
           BUILD_TAG: ${{ inputs.service }}-${{ github.run_number }}
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to STACKIT Container Registry
         uses: docker/login-action@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ vars.STACKIT_REGISTRY }}
+          username: ${{ secrets.STACKIT_REGISTRY_USERNAME }}
+          password: ${{ secrets.STACKIT_REGISTRY_PASSWORD }}
 
       - name: Image tags and labels
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/hbtgmbh/hbt-power/${{ inputs.service }}
+          images: ${{ vars.STACKIT_REGISTRY }}/${{ vars.STACKIT_REGISTRY_PROJECT }}/${{ inputs.service }}
           tags: |
             type=ref,event=branch
             type=sha

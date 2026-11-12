@@ -11,7 +11,7 @@
 | **BIRT 4.3.1** mit iText 2.1.7 | Rendert DOCX und PDF. Die Vorlagen werden nur mit dem Eclipse BIRT Designer bearbeitet (#64). |
 | **Webclient:** React 18, Material-UI v4, Create React App (react-scripts 5), Redux 4, TypeScript 5.3 | Node 20 ist festgelegt (`pwr-webclient/.nvmrc`); npm 11 scheitert an den Abhängigkeiten. |
 | **Microsoft Entra ID** (Azure AD) | Anmeldung (OIDC mit `@azure/msal-browser`) und App-Rollen `Power.User` und `Power.Admin`. |
-| **Container** | Jeder Ordner liefert ein Image nach `ghcr.io/hbtgmbh/hbt-power/<ordner>`. Die Produktion läuft mit Docker Compose auf einem Host ([Kapitel 7](07-verteilungssicht.md)). |
+| **Container** | Jeder Ordner liefert ein Image in die STACKIT Container Registry (`<registry>/<projekt>/<ordner>`). Die Produktion läuft mit Docker Compose auf einem Host und zieht ihre Images noch aus `ghcr.io/hbtgmbh/hbt-power/<ordner>` ([Kapitel 7](07-verteilungssicht.md)). |
 | **Plattformen für die Entwicklung** | macOS (Apple Silicon und Intel), Linux und Windows mit Podman oder Docker (#1). |
 
 ## 2.2 Organisatorische Randbedingungen

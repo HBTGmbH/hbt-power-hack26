@@ -49,6 +49,7 @@ flowchart LR
     end
     GH[GitHub Actions]
     GHCR[(GitHub Container Registry)]
+    SCR[(STACKIT Container Registry)]
 
     W -- "OIDC, Redirect" --> ID
     W -- "HTTPS /" --> I
@@ -59,7 +60,7 @@ flowchart LR
     EG -- "HTTP /pwr-&lt;service&gt;/**<br/>+ X-Pwr-User-*" --> SV
     SV --> DB
     SV --> R
-    GH -- "Images :main, :sha-…" --> GHCR
+    GH -- "Images :main, :sha-…" --> SCR
     WT -- "zieht neue Images<br/>alle 10 Minuten" --> GHCR
 ```
 
@@ -71,7 +72,7 @@ flowchart LR
 | Edge → Entra ID | HTTPS | Die Signaturschlüssel kommen über den konfigurierten Issuer (`spring.security.oauth2.resourceserver.jwt.issuer-uri`). |
 | Edge → Services | HTTP im Container-Netz | Die Routen `/pwr-<service>/**`; die Edge setzt `X-Pwr-User-Login` und `X-Pwr-User-Initials` aus dem Token. |
 | Services ↔ Services | HTTP, `RestTemplate` | Direkt, nicht über die Edge ([Kapitel 5](05-bausteinsicht.md#53-abhängigkeiten-zwischen-den-services)). |
-| GitHub Actions → GHCR | Docker Registry | Der `publish`-Job jedes Ordners schiebt `:main` und `:sha-<commit>`. |
-| Watchtower → GHCR | Docker Registry | Zieht neue `:main`-Images und erzeugt die Container neu. |
+| GitHub Actions → STACKIT Container Registry | Docker Registry | Der `publish`-Job jedes geänderten Ordners schiebt `:main` und `:sha-<commit>` (ADR-28). |
+| Watchtower → GHCR | Docker Registry | Zieht neue `:main`-Images und erzeugt die Container neu. GHCR bekommt seit dem Wechsel zu STACKIT keine neuen Images mehr ([Kapitel 7.2](07-verteilungssicht.md#72-vom-merge-in-die-produktion)). |
 
 Es gibt keine weiteren Fremdsysteme: Weder Mails noch Kalender noch HR-Systeme sind angebunden. Berater legen Admins von Hand an.
