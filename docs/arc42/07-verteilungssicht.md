@@ -71,7 +71,7 @@ flowchart LR
     LIVE -->|"/actuator/info, build_info.json"| CHECK["Stand prüfen"]
 ```
 
-- **Ein Workflow je Ordner** (`.github/workflows/<ordner>.yml`) mit Pfadfilter. Ein PR zeigt nur die Prüfungen der Ordner, die er ändert ([ADR-18](09-architekturentscheidungen.md#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish)).
+- **Ein Workflow für alle Ordner** (`.github/workflows/ci.yml`): Der Job `changes` ermittelt die geänderten `pwr-*`-Ordner, je einer läuft als Eintrag einer Matrix. Die Build-Schritte stehen in den wiederverwendbaren Workflows `_maven-service.yml` und `_node-service.yml`. `CI result` fasst alles zu einer Prüfung zusammen, die als Pflicht-Check taugt ([ADR-28](09-architekturentscheidungen.md#adr-28-ein-ci-workflow-mit-änderungserkennung-und-wiederverwendbaren-build-workflows)).
 - **`check`** auf PRs: Lesetoken, Cache erlaubt, `mvn -B package` bzw. `npm ci && npm run build`, Image bauen ohne Push.
 - **`publish`** auf `main`: derselbe Build ohne Cache. Der Webclient schreibt zusätzlich `build_info.json`. Danach Push nach GHCR.
 - **Merge ist Deployment:** Was vorher in der Umgebung passieren muss, steht im PR unter *Operations / Deployment Notes* und wird vor dem Merge erledigt: SQL-Skript, neue Umgebungsvariable, Redis-Migration.

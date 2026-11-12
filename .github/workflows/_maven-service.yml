@@ -1,0 +1,101 @@
+name: Maven service
+
+# Builds and tests one Maven folder (pwr-*-service) and its image. Called by ci.yml, which
+# also grants the permissions: this workflow declares none, so it never gets more than its
+# caller allows. Two separate jobs, so the job that pushes the image never has a cache.
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: Folder of the service, e.g. pwr-skill-service
+        type: string
+        required: true
+      publish:
+        description: false = check (cache, image without push), true = publish (no cache, push)
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    name: Build and test
+    if: ${{ !inputs.publish }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.service }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # JDK 13 from the root .java-version, as for jenv and mise locally
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version-file: .java-version
+          cache: maven
+          cache-dependency-path: ${{ inputs.service }}/pom.xml
+
+      - name: Build and test with Maven
+        run: ./mvnw -B package
+
+      # Only checks that the image builds; images are published from main
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.service }}
+          push: false
+
+  publish:
+    name: Build, test and publish image
+    if: ${{ inputs.publish }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.service }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # No Maven cache when publishing, so no cached dependency can end up in the image
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version-file: .java-version
+
+      - name: Build and test with Maven
+        run: ./mvnw -B package
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/hbtgmbh/hbt-power/${{ inputs.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

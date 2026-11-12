@@ -28,7 +28,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 | [15](#adr-15-kurznamen-der-berater-zentral-berechnet) | Kurznamen der Berater zentral berechnet | gilt | #216 |
 | [16](#adr-16-localdate-als-string-im-webclient) | `LocalDate` als String im Webclient | gilt | #24, #26 |
 | [17](#adr-17-vorerst-jdk-13-und-spring-boot-22) | Vorerst JDK 13 und Spring Boot 2.2 | gilt, Upgrade vorgeschlagen | #51 |
-| [18](#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish) | CI je Ordner mit Pfadfiltern und getrenntem Publish | gilt | #6, #8 |
+| [18](#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish) | CI je Ordner mit Pfadfiltern und getrenntem Publish | abgelöst durch ADR-28 | #6, #8 |
 | [19](#adr-19-profil-elemente-als-gemeinsame-einträge-mit-früheren-namen) | Profil-Elemente als gemeinsame Einträge mit früheren Namen | gilt | #227, #230, #270, #291 |
 | [20](#adr-20-berater-löschen-über-services-ohne-verteilte-transaktion) | Berater löschen über Services ohne verteilte Transaktion | gilt | #240, #243 |
 | [21](#adr-21-housekeeping-je-service) | Housekeeping je Service | gilt | #242 |
@@ -38,6 +38,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 | [25](#adr-25-keine-admin-meldungen) | Keine Admin-Meldungen | gilt | #138, #307 |
 | [26](#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar) | Wissensbasis aus öffentlicher Doku und privatem Sidecar | vorgeschlagen | [HBTGmbH/hbt-power-hack26#2](https://github.com/HBTGmbH/hbt-power-hack26/issues/2) |
 | [27](#adr-27-deutsche-domänensprache-mit-verbindlichem-glossar) | Deutsche Domänensprache mit verbindlichem Glossar | gilt | [HBTGmbH/hbt-power-hack26#2](https://github.com/HBTGmbH/hbt-power-hack26/issues/2) |
+| [28](#adr-28-ein-ci-workflow-mit-änderungserkennung-und-wiederverwendbaren-build-workflows) | Ein CI-Workflow mit Änderungserkennung und wiederverwendbaren Build-Workflows | gilt | – |
 
 ---
 
@@ -48,7 +49,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 - **Entscheidung:** Ein Repository `hbt-power`, in das die sieben Repositories als Ordner gemergt wurden; ihre Historie bleibt erhalten. Es gibt keinen Parent-POM und keinen gemeinsamen Code: Jeder Ordner wird für sich gebaut, getestet und ausgeliefert.
 - **Konsequenzen:**
   - Eine Änderung über Services ist ein PR.
-  - CI läuft je Ordner ([ADR-18](#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish)).
+  - CI baut, testet und publiziert je Ordner ([ADR-28](#adr-28-ein-ci-workflow-mit-änderungserkennung-und-wiederverwendbaren-build-workflows)).
   - Die Teile laufen mit verschiedenen Commits, deshalb zeigt die App jeden an (#71).
   - Modelle, die mehrere Services kennen, sind mehrfach vorhanden.
   - Die README-Dateien der Services beschreiben nur kurz den Service und verweisen auf die `README.md` im Wurzelverzeichnis und diese Dokumentation (#253).
@@ -253,7 +254,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
 
 ## ADR-18: CI je Ordner mit Pfadfiltern und getrenntem Publish
 
-- **Status:** gilt (#6, #8)
+- **Status:** abgelöst durch [ADR-28](#adr-28-ein-ci-workflow-mit-änderungserkennung-und-wiederverwendbaren-build-workflows) (#6, #8)
 - **Kontext:** Die Workflows liefen nur bei Push auf `main` und pushten bei jedem Lauf ein Image; Pull Requests wurden nicht gebaut (#6). Actions liefen mit schwebender Hauptversion, ungeprüft und ohne Updates (#8).
 - **Entscheidung:**
   - Ein Workflow je Ordner, mit demselben Pfadfilter für Push und PR.
@@ -401,3 +402,21 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Doku und Oberflächentexte (`de-DE.json`) sind auf die festgelegten Begriffe umgestellt. Code, API und gespeicherte Daten behalten ihre Namen.
   - `audit` (MCP-Server `knowledge`) meldet ersetzte Wörter in deutscher Doku und in den Oberflächentexten, der wöchentliche Lauf korrigiert sie.
   - Neue Begriffe kommen ins Glossar, bevor sie benutzt werden.
+
+## ADR-28: Ein CI-Workflow mit Änderungserkennung und wiederverwendbaren Build-Workflows
+
+- **Status:** gilt (seit 2026-11-12, löst [ADR-18](#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish) ab)
+- **Kontext:**
+  - Die sieben Workflows je Ordner waren bis auf Namen und wenige Zeilen gleich. Jede Änderung am Build musste siebenmal gleich gemacht werden.
+  - Pflicht-Checks gingen nicht: Ein Workflow, den sein Pfadfilter überspringt, meldet keinen Status, und ein PR mit Pflicht-Check bliebe offen.
+  - Ein neuer Ordner brauchte einen eigenen Workflow.
+- **Entscheidung:**
+  - Ein Workflow `ci.yml`. Der Job `changes` ermittelt die geänderten `pwr-*`-Ordner aus dem Diff; Ordner mit `pom.xml` laufen in einer Maven-Matrix, Ordner mit `package.json` in einer Node-Matrix.
+  - Die Build-Schritte stehen in wiederverwendbaren Workflows (`_maven-service.yml`, `_node-service.yml`) mit getrennten Jobs `check` (Cache, Image ohne Push) und `publish` (ohne Cache, Push). Nur die aufrufenden Publish-Jobs in `ci.yml` bekommen `packages: write`.
+  - Der Job `CI result` läuft immer und fasst alle Ergebnisse zusammen.
+  - Weiter gilt aus ADR-18: Actions nach fester Regel gepinnt, actionlint und zizmor prüfen die Workflows, Dependabot aktualisiert nur Actions.
+- **Konsequenzen:**
+  - Ein PR baut und testet weiterhin nur die Ordner, die er ändert; jeder Ordner hat seine eigene Prüfung (`<ordner> / Build and test`) und sein eigenes Image ([ADR-01](#adr-01-monorepo-mit-eigenständigen-projekten-je-ordner) bleibt).
+  - `CI result` kann als Pflicht-Check eingerichtet werden.
+  - Eine Änderung an `ci.yml` oder einem `_*.yml` baut alle Ordner.
+  - Ein Deployment (z. B. nach STACKIT) kann später als eigener Job an dieselben Ergebnisse anschließen.

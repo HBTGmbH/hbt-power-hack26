@@ -1,0 +1,112 @@
+name: Node service
+
+# Builds one npm folder (pwr-webclient) and its image. Called by ci.yml, which also grants
+# the permissions: this workflow declares none, so it never gets more than its caller
+# allows. Two separate jobs, so the job that pushes the image never has a cache.
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: Folder of the app, e.g. pwr-webclient
+        type: string
+        required: true
+      publish:
+        description: false = check (cache, image without push), true = publish (no cache, push)
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    name: Build
+    if: ${{ !inputs.publish }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.service }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Node version from the folder's .nvmrc, as for fnm, nvm and mise locally
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: ${{ inputs.service }}/.nvmrc
+          cache: npm
+          cache-dependency-path: ${{ inputs.service }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Only checks that the image builds; images are published from main
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.service }}
+          push: false
+
+  publish:
+    name: Build and publish image
+    if: ${{ inputs.publish }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.service }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # No npm cache when publishing, so no cached package can end up in the image
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: ${{ inputs.service }}/.nvmrc
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # After the build: react-scripts build empties the build folder
+      - name: Write build info
+        run: npm run compileInfo --if-present
+        env:
+          BUILD_TAG: ${{ inputs.service }}-${{ github.run_number }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/hbtgmbh/hbt-power/${{ inputs.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+
+      - name: Build and push image
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ inputs.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

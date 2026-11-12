@@ -1,0 +1,47 @@
+# Tool versions for mise (https://mise.jdx.dev), an alternative to jenv/fnm/nvm.
+# Keep in line with .java-version, pwr-webclient/.nvmrc and the CI workflows.
+
+[tools]
+# JDK 13 as in CI (Zulu): Lombok in the Spring Boot 2.2 services fails on JDK 16+.
+# mise sets JAVA_HOME, which ./mvnw uses.
+java = "zulu-13"
+# Node 20 with its bundled npm 10: npm 11 (Node 24+) fails on `npm install`.
+node = "20"
+# uv for the workflow linters (actionlint, zizmor) via uvx.
+uv = "latest"
+
+[tasks."db:up"]
+description = "Start MariaDB (3307) and Redis (6379)"
+run = "docker compose up -d"
+
+[tasks."db:down"]
+description = "Stop MariaDB and Redis"
+run = "docker compose down"
+
+[tasks."web:install"]
+description = "Install the webclient dependencies"
+run = "npm --prefix pwr-webclient install"
+
+[tasks."web:local"]
+description = "Webclient dev server on :3000 against the local services"
+run = "npm --prefix pwr-webclient run start:local"
+
+[tasks."web:mock"]
+description = "Webclient dev server on :3000 with fixtures"
+run = "npm --prefix pwr-webclient run start:mock"
+
+[tasks."web:build"]
+description = "Build the webclient"
+run = "npm --prefix pwr-webclient run build"
+
+[tasks.package]
+description = "Build and test one service: mise run package pwr-<name>-service"
+usage = 'arg "<service>"'
+run = "cd {{arg(name='service')}} && ./mvnw -B package"
+
+[tasks."lint:actions"]
+description = "Lint the GitHub Actions workflows (actionlint, zizmor)"
+run = [
+  "uvx --from actionlint-py --with shellcheck-py actionlint",
+  "uvx zizmor --persona regular .",
+]

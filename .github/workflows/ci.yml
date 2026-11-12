@@ -1,0 +1,168 @@
+name: CI
+
+# One workflow for all folders pwr-*: `changes` finds the folders a run touches, the build
+# steps live in the reusable workflows _maven-service.yml (folders with a pom.xml) and
+# _node-service.yml (folders with a package.json). `CI result` sums up every run and is
+# the one check to require for merging.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # builds every folder
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded PR runs stop; runs on main queue, so every commit there gets its images
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  changes:
+    name: Find changed folders
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      maven: ${{ steps.detect.outputs.maven }}
+      node: ${{ steps.detect.outputs.node }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # the push event's "before" commit can lie far back
+          persist-credentials: false
+
+      - name: Detect changed folders
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          all=$(find . -mindepth 1 -maxdepth 1 -type d -name 'pwr-*' -printf '%f\n' | sort)
+
+          # A PR is checked out as a merge commit: its first parent is the target branch.
+          if [ "$EVENT" = pull_request ]; then base=$(git rev-parse HEAD^1); else base=$BEFORE; fi
+
+          reason=""
+          if [ "$EVENT" = workflow_dispatch ]; then
+            reason="manual run"
+          elif [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            reason="no base commit to compare with (new branch or force push)"
+          else
+            files=$(git diff --name-only "$base" HEAD)
+            if grep -qE '^\.github/workflows/(ci|_[^/]+)\.yml$' <<<"$files"; then
+              reason="CI workflows changed"
+            fi
+          fi
+
+          if [ -n "$reason" ]; then
+            echo "Building every folder: $reason"
+            changed=$all
+          else
+            # Documentation and local development files build nothing
+            changed=$(awk -F/ 'NF > 1 && $1 ~ /^pwr-/ && $2 != "local-dev" && tolower($0) !~ /\.md$/ { print $1 }' <<<"$files" | sort -u)
+          fi
+
+          to_json() { jq -Rnc '[inputs | select(length > 0)]'; }
+          maven=$(for d in $changed; do if [ -f "$d/pom.xml" ]; then echo "$d"; fi; done | to_json)
+          node=$(for d in $changed; do if [ -f "$d/package.json" ]; then echo "$d"; fi; done | to_json)
+          echo "maven=$maven" >> "$GITHUB_OUTPUT"
+          echo "node=$node" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Folders to build"
+            echo "- Maven: \`$maven\`"
+            echo "- Node: \`$node\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Pull requests: read-only token, dependency caches allowed, images built but not pushed
+
+  maven-check:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.maven != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.maven) }}
+    uses: ./.github/workflows/_maven-service.yml
+    with:
+      service: ${{ matrix.service }}
+      publish: false
+
+  node-check:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.node != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.node) }}
+    uses: ./.github/workflows/_node-service.yml
+    with:
+      service: ${{ matrix.service }}
+      publish: false
+
+  # main (and manual runs): the only jobs with packages: write, without dependency caches.
+  # Hackathon 2026: only the upstream repository publishes images, never this fork (also not manually).
+
+  maven-publish:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: >-
+      github.event_name != 'pull_request' && github.repository == 'HBTGmbH/hbt-power'
+      && needs.changes.outputs.maven != '[]'
+    permissions:
+      contents: read
+      packages: write  # pushes the image to ghcr.io
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.maven) }}
+    uses: ./.github/workflows/_maven-service.yml
+    with:
+      service: ${{ matrix.service }}
+      publish: true
+
+  node-publish:
+    name: ${{ matrix.service }}
+    needs: changes
+    if: >-
+      github.event_name != 'pull_request' && github.repository == 'HBTGmbH/hbt-power'
+      && needs.changes.outputs.node != '[]'
+    permissions:
+      contents: read
+      packages: write  # pushes the image to ghcr.io
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.node) }}
+    uses: ./.github/workflows/_node-service.yml
+    with:
+      service: ${{ matrix.service }}
+      publish: true
+
+  result:
+    name: CI result
+    needs: [changes, maven-check, node-check, maven-publish, node-publish]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          case " $RESULTS " in
+            *" failure "* | *" cancelled "*) exit 1 ;;
+          esac

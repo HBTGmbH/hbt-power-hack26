@@ -93,12 +93,15 @@ The pre-commit hook in `.githooks/pre-commit` tests every `pwr-*` package that h
 
 ## CI
 
-One GitHub Actions workflow per folder (`.github/workflows/<folder>.yml`), path-filtered (the same filter for `push` and `pull_request` via a YAML anchor). Each has two jobs:
+One workflow for all folders, `.github/workflows/ci.yml` ("CI", ADR-28), on pull requests against `main`, pushes to `main` and manually:
 
-- **`check`** ("Build and test") on pull requests against `main`: build with Zulu JDK 13 / Node 20, run tests, build the image without pushing. Read-only token, dependency caches allowed.
-- **`publish`** on push to `main` (or manually): the same build, then push the image to `ghcr.io/hbtgmbh/hbt-power/<folder>`. Only this job has `packages: write`, and it uses no dependency cache, so nothing cached by a PR run can end up in an image. During the hackathon it only runs in the upstream repository `HBTGmbH/hbt-power` (`github.repository` in its `if`), so this fork publishes no images.
+- **`changes`** finds the `pwr-*` folders the run touches (PR: the diff of the merge commit to its first parent; push: to the commit before). Changes only to Markdown or a `local-dev/` folder build nothing. It builds every folder on a manual run, when there is no commit to compare with (new branch, force push) and when `ci.yml` or a `_*.yml` changed. A folder with a `pom.xml` goes into the Maven matrix, one with a `package.json` into the Node matrix, so a new `pwr-*` folder is built without a new workflow.
+- **The build steps** live in reusable workflows (`on: workflow_call`, inputs `service` and `publish`): `_maven-service.yml` (JDK from the root `.java-version`, `./mvnw -B package`) and `_node-service.yml` (Node from the folder's `.nvmrc`, `npm ci`, `npm run build`, on publish `npm run compileInfo`). A change to the build goes there, once for all folders. They declare no `permissions`, so they get what `ci.yml` grants and never more. Each has two jobs, only one of which runs:
+  - **`check`** ("Build and test" / "Build") on pull requests: read-only token, dependency caches allowed, image built without pushing.
+  - **`publish`** on push to `main` (or manually): the same build without dependency cache, then push the image to `ghcr.io/hbtgmbh/hbt-power/<folder>` (`:main`, `:sha-<commit>`). Only the calling jobs `maven-publish`/`node-publish` in `ci.yml` grant `packages: write`, so nothing cached by a PR run can end up in an image. During the hackathon they only run in the upstream repository `HBTGmbH/hbt-power` (`github.repository` in their `if`), so this fork publishes no images.
+- **`CI result`** always runs and fails if any job failed or was cancelled. It is the one check to require in the branch protection: it reports a status for every PR, whichever folders it touches. The checks per folder are named `<folder> / Build and test`.
 
-A PR only shows checks for the folders it touches. Workflow changes must pass actionlint and zizmor.
+Deployment (e.g. to STACKIT) is not part of the CI yet. Workflow changes must pass actionlint and zizmor.
 
 - **`lint-actions.yml`** ("Lint GitHub Actions") runs on every PR against `main` and every push to `main` that touches `.github/**`: actionlint with shellcheck and zizmor (online audits), with `contents: read` only. Locally: `uvx --from actionlint-py --with shellcheck-py actionlint` and `uvx zizmor --persona regular .` from the repository root.
 - **Pinning policy** in `.github/zizmor.yml`: first-party actions (`actions/*`, `github/*`, `docker/*` …) and `HBTGmbH/*` with a major tag (`@v7`), all others with the full commit SHA plus a `# vX.Y.Z` comment.
