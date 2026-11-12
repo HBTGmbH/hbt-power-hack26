@@ -10,6 +10,9 @@ on:
   push:
     branches:
       - main
+      # TEMP: publishes this branch to STACKIT while ci.yml isn't on main yet (workflow_dispatch
+      # only works from the default branch). Remove before merging.
+      - stackit-pipeline
   pull_request:
     branches:
       - main

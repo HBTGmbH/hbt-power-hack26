@@ -9,6 +9,8 @@ java = "zulu-13"
 node = "20"
 # uv for the workflow linters (actionlint, zizmor) via uvx.
 uv = "latest"
+# GitHub CLI for issues, PRs and workflow runs (gh workflow run ci.yml --ref <branch>).
+gh = "latest"
 
 [tasks."db:up"]
 description = "Start MariaDB (3307) and Redis (6379)"
