@@ -994,7 +994,7 @@ label.pwr-view-profile-switch-label {
     overflow: hidden;
 }
 
-/* Raw headings (login, start page, view profile generator) in the HBT dark blue like the Typography headings (PowerTheme.ts) */
-h1, h2, h3, h4, h5, h6 {
-    color: #191E55;
+/* Raw headings (login, start page, view profile generator) in the primary colour like the Typography headings (PowerTheme.ts) */
+.pwr-heading {
+    color: var(--pwr-primary);
 }
