@@ -993,3 +993,8 @@ label.pwr-view-profile-switch-label {
     -webkit-line-clamp: 2;
     overflow: hidden;
 }
+
+/* Raw headings (login, start page, view profile generator) in the primary colour like the Typography headings (PowerTheme.ts) */
+.pwr-heading {
+    color: var(--pwr-primary);
+}

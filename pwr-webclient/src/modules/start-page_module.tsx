@@ -81,7 +81,7 @@ export const StartPage = () => {
                         </div>
                     </div>
                     <div className="vertical-align">
-                        <h1>{PowerLocalize.get('App.Name')}</h1>
+                        <h1 className="pwr-heading">{PowerLocalize.get('App.Name')}</h1>
                     </div>
                     <PwrSpacer size="tight"/>
                     <div className="vertical-align">
