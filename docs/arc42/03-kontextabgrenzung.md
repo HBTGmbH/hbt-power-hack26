@@ -71,7 +71,7 @@ flowchart LR
 | Browser → Ingress `/api/pwr-<service>/**` | HTTPS, JSON, `Authorization: Bearer` | Alle fachlichen Aufrufe. Der Ingress entfernt `/api`, die Edge entfernt `/pwr-<service>`. |
 | Browser ↔ Entra ID | OIDC (MSAL, Redirect-Flow) | Scopes `openid`, `offline_access` und der API-Scope von Power. Die Token werden still erneuert. |
 | Edge → Entra ID | HTTPS | Die Signaturschlüssel kommen über den konfigurierten Issuer (`spring.security.oauth2.resourceserver.jwt.issuer-uri`). |
-| Edge → Services | HTTP im Container-Netz | Die Routen `/pwr-<service>/**`; die Edge setzt `X-Pwr-User-Login` und `X-Pwr-User-Initials` aus dem Token. |
+| Edge → Services | HTTP im Container-Netz | Die Routen `/pwr-<service>/**` mit den Identitäts-Headern aus dem Token ([8.1](08-querschnittliche-konzepte.md#81-sicherheit)). |
 | Services ↔ Services | HTTP, `RestTemplate` | Direkt, nicht über die Edge ([Kapitel 5](05-bausteinsicht.md#53-abhängigkeiten-zwischen-den-services)). |
 | GitHub Actions → GHCR | Docker Registry | Der `publish`-Job jedes Ordners schiebt `:main` und `:sha-<commit>`. |
 | Watchtower → GHCR | Docker Registry | Zieht neue `:main`-Images und erzeugt die Container neu. |

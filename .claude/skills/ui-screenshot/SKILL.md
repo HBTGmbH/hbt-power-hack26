@@ -35,7 +35,7 @@ in. The fixtures hold the consultant `mmu` (Max Mustermann, filled profile, proj
 | `--port <n>` | default 3100. A running dev server is reused if it has the same mode and user, otherwise the script stops with an error: use another port for another mode or user |
 | `--keep-server` | leave the dev server running; the next call starts in seconds instead of a minute |
 
-Prerequisites: `npm --prefix pwr-webclient install`, then once `npx --prefix pwr-webclient playwright install chromium`.
+Prerequisites: the webclient [installed](../../../AGENTS.md#build-and-test), then once `npx --prefix pwr-webclient playwright install chromium`.
 
 ## Reading the result
 
@@ -55,9 +55,8 @@ A screenshot with missing fixtures or problems doesn't show the page as a user s
 
 1. Take the screenshots of the changed pages on the branch, with `--name` such as `<page>-after`.
 2. Take the same on `main` (`git stash` or a worktree of `main`), `<page>-before`.
-3. Compare the pairs and check them against the acceptance criteria of the issue and the webclient rules in `AGENTS.md`
-   (colours and contrast, `filled` fields, spacing on the 8 px grid, button order of `PwrFormActions`, texts through
-   `PowerLocalizer`). For an issue or PR, attach the PNGs.
+3. Compare the pairs and check them against the acceptance criteria of the issue and the [webclient rules in `AGENTS.md`](../../../AGENTS.md#webclient)
+   (colours, fields, spacing, form buttons, texts). For an issue or PR, attach the PNGs.
 4. Pages with a dialog, a menu or an edit form need a click first. The script only navigates: for such a state add a
    route, or take the screenshot by hand in the dev server (`npm --prefix pwr-webclient run start:mock`).
 
@@ -68,8 +67,7 @@ query string goes after `~` (`usage~type=SECTOR.json`). A path segment named `_`
 `GET/consultants/_.json` answers for every initials. The body of a request plays no part. `.empty` answers 204. The
 lookup is in `pwr-webclient/mock/mockApi.js`.
 
-**Add fixtures** for new endpoints or data by recording them from the local backend with seed data (see `README.md`,
-*Sample data*): start the services, then
+**Add fixtures** for new endpoints or data by recording them from the local backend with seed data ([`README.md` › Load test data](../../../README.md#load-test-data-optional)): start the services, then
 
 ```shell
 node .claude/skills/ui-screenshot/scripts/screenshot.mjs --mode record --port 3101 /app/mmu/<new page>
@@ -78,6 +76,5 @@ node .claude/skills/ui-screenshot/scripts/screenshot.mjs --mode record --port 31
 Every successful GET, HEAD and POST is stored (and overwrites the fixture of the same request). Small changes, such as
 a field an endpoint gained, can also be edited by hand.
 
-**The repository is public and the screenshots end up on GitHub.** Fixtures hold invented data only. Before you commit
-recorded fixtures, check that no real person, customer or operating environment detail got in, e.g. a consultant of
-your own in the local database: `git diff --stat pwr-webclient/mock` and a search for names you know.
+**The repository is [public](../../../AGENTS.md#github-workflow):** fixtures hold invented data only. Before you
+commit recorded fixtures, check that no real person or customer got in, e.g. a consultant of your own in the local database: `git diff --stat pwr-webclient/mock` and a search for names you know.

@@ -1,25 +1,25 @@
 # HBT Power
 
-| Folder                                                   | What                                | Local port | Stack                   |
-|----------------------------------------------------------|-------------------------------------|-----------:|-------------------------|
-| [`pwr-webclient`](pwr-webclient/README.md)               | React frontend                      |       3000 | React 18, MUI v4        |
-| [`pwr-profile-service`](pwr-profile-service/README.md)   | Consultants, profiles, admin        |       9004 | Spring Boot 2.2, MariaDB |
-| [`pwr-skill-service`](pwr-skill-service/README.md)       | Skill tree and search               |       9003 | Spring Boot 2.2, MariaDB |
-| [`pwr-report-service`](pwr-report-service/README.md)     | Report generation (BIRT)            |       9005 | Spring Boot 2.2, MariaDB |
-| `pwr-statistics-service`                                 | Statistics                          |       9007 | Spring Boot 2.7, Redis  |
-| `pwr-view-profile-service`                               | View profiles and report templates  |       9008 | Spring Boot 2.2, Redis  |
-| `pwr-edge-service`                                       | Routing and auth                    |       9000 | Spring Cloud Gateway    |
+| Folder                                                   | What                                | Local port |
+|----------------------------------------------------------|-------------------------------------|-----------:|
+| [`pwr-webclient`](pwr-webclient/README.md)               | React frontend                      |       3000 |
+| [`pwr-profile-service`](pwr-profile-service/README.md)   | Consultants, profiles, admin        |       9004 |
+| [`pwr-skill-service`](pwr-skill-service/README.md)       | Skill tree and search               |       9003 |
+| [`pwr-report-service`](pwr-report-service/README.md)     | Report generation (BIRT)            |       9005 |
+| `pwr-statistics-service`                                 | Statistics                          |       9007 |
+| `pwr-view-profile-service`                               | View profiles and report templates  |       9008 |
+| `pwr-edge-service`                                       | Routing and auth                    |       9000 |
 
 Infrastructure for local development (MariaDB, Redis) is defined in [`docker-compose.yaml`](docker-compose.yaml).
 
-The architecture (context, building blocks, runtime flows, deployment, decisions, risks) is documented after arc42 in [`docs/arc42/`](docs/arc42/README.md); the rules for development are in [`AGENTS.md`](AGENTS.md).
+Architecture and stack: [`docs/arc42/`](docs/arc42/README.md); rules for development: [`AGENTS.md`](AGENTS.md#agentsmd).
 
 ## Prerequisites
 
 Works on macOS (Apple Silicon and Intel), Linux and Windows.
 
 - **JDK 13**, e.g. Azul Zulu 13 (IntelliJ: *File → Project Structure → SDKs → + → Download JDK*, or [azul.com/downloads](https://www.azul.com/downloads/?version=java-13-mts&package=jdk), native builds for arm64 and x64).
-  Newer JDKs don't work: the Spring Boot 2.2 services use Lombok versions that fail to compile on JDK 16+.
+  Newer JDKs don't work: the Lombok versions of the Spring Boot 2.2 services fail on JDK 16+ ([ADR-17](docs/arc42/09-architekturentscheidungen.md#adr-17-vorerst-jdk-13-und-spring-boot-22)).
   Homebrew has no `zulu@13` cask.
 - **Node.js 20** (as in CI, pinned in [`pwr-webclient/.nvmrc`](pwr-webclient/.nvmrc)) with its bundled npm 10.
   npm 11 (Node 24+) fails on `npm install` with a peer dependency conflict.
@@ -49,11 +49,7 @@ eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 
 ### Pre-commit hook
 
-```shell
-git config core.hooksPath .githooks
-```
-
-After this, every commit runs the tests of the `pwr-*` packages it changes (see [`AGENTS.md`](AGENTS.md#build-and-test)).
+Turn on the pre-commit hook once per clone, as described in [`AGENTS.md` › Build and test](AGENTS.md#build-and-test); it tests the `pwr-*` packages a commit changes.
 
 ## IntelliJ setup
 
@@ -68,7 +64,7 @@ The shared run configurations in [`.run/`](.run) are picked up automatically and
 
 ## Run locally
 
-The `localDev` Spring profiles and the webclient's local mode talk to the services directly. The edge service and Azure login are bypassed.
+The `localDev` Spring profiles and the webclient's local mode run without edge and login ([arc42 8.1](docs/arc42/08-querschnittliche-konzepte.md#81-sicherheit)).
 
 ### 1. Start MariaDB and Redis
 
@@ -98,6 +94,13 @@ Run **`[localDev] Backend`** from the run widget. It starts all five services at
 | [`[localDev] View profile service`](.run/[localDev]%20View%20profile%20service.run.xml) | [localhost:9008/actuator/health](http://localhost:9008/actuator/health) |
 
 The edge service ([`[localDev] Edge Server`](.run/[localDev]%20Edge%20Server.run.xml)) isn't needed locally and isn't part of it.
+
+From a terminal whose `JAVA_HOME` points to JDK 13, build a service and start it from inside its folder:
+
+```shell
+cd pwr-profile-service && ./mvnw package -DskipTests
+java -jar target/pwr-profile-service.jar --spring.profiles.active=localDev
+```
 
 ### 3. Start the webclient
 
@@ -150,8 +153,8 @@ cd pwr-report-service && ./mvnw exec:exec
 
 #### Fonts in PDFs
 
-The templates use the HBT font Simplon Norm. It is licensed and therefore in no repository and no image. Without it,
-the PDF preview uses BIRT's built-in Times-Roman locally; the image falls back to Noto Sans. To see the real font
+The templates use the licensed HBT font Simplon Norm ([`AGENTS.md`](AGENTS.md#architecture), *Fonts in PDFs*). Without it, the PDF preview uses BIRT's built-in Times-Roman
+locally. To see the real font
 locally, start the report service with the directory that holds the `.otf`/`.ttf` files (only the directory itself is
 read, not its subdirectories):
 
@@ -165,10 +168,8 @@ java -jar target/pwr-report-service.jar --spring.profiles.active=localDev \
 
 ### Memory
 
-Every image sets a heap limit and lets G1 give unused heap back to the OS (`JAVA_TOOL_OPTIONS` in the `Dockerfile`,
-#293); the limits and how they were measured are in
-[arc42 chapter 7.5](docs/arc42/07-verteilungssicht.md#75-speicher-der-java-services). A `JAVA_TOOL_OPTIONS` in the
-deployment replaces the whole value, so it has to repeat `-XX:G1PeriodicGCInterval=60000`.
+Every image sets a heap limit (#293): the limits, how they were measured and how a deployment overrides them are in
+[arc42 chapter 7.5](docs/arc42/07-verteilungssicht.md#75-speicher-der-java-services).
 
 ### Stop and reset
 
@@ -195,10 +196,9 @@ claude plugin marketplace add HBTGmbH/hbt-leviathan-hack26
 claude plugin install knowledge@hbt-leviathan --scope project
 ```
 
-After a restart, sessions start with an overview of the knowledge base, prompts get matching sections, and a hook blocks
-private content before writes, commits and pushes. The MCP server `knowledge` offers `search`, `read`, `define`
-(e.g. `Profilauszug`), `status`, `audit` (replaced words, incomplete ADRs, dead links) and `check` (no private content in
-the next commit).
+After a restart its hooks are active ([ADR-26](docs/arc42/09-architekturentscheidungen.md#adr-26-wissensbasis-aus-öffentlicher-doku-und-privatem-sidecar)). The MCP server `knowledge` offers `search`, `read`, `define`
+(e.g. `Profilauszug`), `overview`, `decisions` and `terms`, and for maintenance `decide`, `term`, `new_page`, `status`,
+`audit` (replaced words, incomplete ADRs, dead links) and `check` (no private content in the next commit).
 
 Project members may add a private knowledge source; without one the tool works with the public docs only. How to set one
 up, the leak protection and the weekly run that keeps docs and code aligned are in the

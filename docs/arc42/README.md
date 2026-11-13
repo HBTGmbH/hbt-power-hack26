@@ -1,6 +1,6 @@
 # HBT Power – Architekturdokumentation
 
-Diese Dokumentation beschreibt die Architektur von HBT Power nach [arc42](https://arc42.org/overview/), eine Datei je Hauptkapitel. Sie beschreibt den Stand im Code; wo [`AGENTS.md`](../../AGENTS.md) eine Regel schon festhält, verweist sie darauf, statt sie zu wiederholen. Einrichtung und lokaler Start stehen in der [`README.md`](../../README.md) im Wurzelverzeichnis.
+Diese Dokumentation beschreibt die Architektur von HBT Power nach [arc42](https://arc42.org/overview/), eine Datei je Hauptkapitel. Sie beschreibt den Stand im Code und verweist für Regeln auf [`AGENTS.md`](../../AGENTS.md#agentsmd). Einrichtung und lokaler Start stehen in der [`README.md`](../../README.md) im Wurzelverzeichnis.
 
 | Nr. | Kapitel | Inhalt |
 |---:|---|---|
@@ -19,4 +19,4 @@ Diese Dokumentation beschreibt die Architektur von HBT Power nach [arc42](https:
 
 Diagramme sind in [Mermaid](https://mermaid.js.org) geschrieben; GitHub stellt sie direkt dar.
 
-Wer eine Regel, einen Service, einen Ablauf oder eine Entscheidung ändert, passt das betroffene Kapitel im selben PR an (Definition of Done in [`AGENTS.md`](../../AGENTS.md)).
+Wann ein Kapitel mitgeändert wird, regelt die [Definition of Done](../../AGENTS.md#documentation-and-pull-request).

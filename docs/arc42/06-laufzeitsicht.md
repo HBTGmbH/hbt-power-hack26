@@ -17,7 +17,7 @@ sequenceDiagram
     U->>W: öffnet Power
     W->>ID: loginRedirect (OIDC, MSAL)
     ID-->>W: ID-Token (roles, mailnickname), Access-Token
-    W->>W: Kürzel aus mailnickname, Rollen aus roles
+    W->>W: Kürzel aus mailnickname (OIDCService.getCurrentAccount), Rollen aus roles
     W->>I: GET /api/pwr-profile-service/consultants/{kürzel}<br/>Authorization: Bearer …
     I->>E: GET /pwr-profile-service/consultants/{kürzel}
     E->>E: JWT prüfen, Rolle je Pfad (Power.User / Power.Admin)
@@ -26,11 +26,10 @@ sequenceDiagram
     P-->>W: Berater mit Profil
 ```
 
-- Danach führt die Startseite (`/start`, #263) Admins in die Beraterverwaltung und alle anderen gleich ins eigene Profil (#135). Ohne eigenes Profil oder Kürzel zeigt sie eine Meldung.
+- Danach führt die Startseite (`/start`, `StartPage`, #263) Admins in die Beraterverwaltung (`/admin/home/consultants`, von dort öffnen sie Profile) und alle anderen gleich ins eigene Profil (#135). Ohne eigenes Profil oder Kürzel zeigt sie eine Meldung und nichts zur Auswahl. `/profilauswahl` (alte Links), `/admin/` und die Marke in der App-Bar führen ebenfalls zur Startseite. Die Anmeldeseite (`/`) erscheint nur nach dem Abmelden oder wenn die automatische Anmeldung scheiterte (#129).
 - Läuft das Token ab, erneuert MSAL es still (`acquireTokenSilent`). Scheitert das, meldet der Webclient einmal automatisch neu an (#129).
-- Jeder API-Aufruf holt vorher ein Token (`OIDCService.getToken`) und wartet dafür, bis die Rückkehr vom Login verarbeitet ist. Ein Fehler dabei meldet nie ab (#311), jeder andere als eine fehlende Anmeldung lässt nur den Aufruf scheitern, mit Fehlermeldung. Abgemeldet wird nur über das Menü.
-- Verlangt MSAL eine Anmeldung (Interaktion nötig, kein Konto), wartet der Aufruf auf sie, ohne dass die Seite verlassen wird (#323, Ablauf unten). Alle Aufrufe, die in der Zeit kommen, warten mit und laufen nach der Anmeldung weiter; ungespeicherte Änderungen bleiben erhalten. Bei *Abbrechen* oder geschlossenem Popup scheitern sie mit einer Meldung für alle. Blockiert der Browser das Popup, bleibt der Redirect, nach der Frage nach ungespeicherten Änderungen; danach geht es auf derselben Seite weiter, nicht auf der Startseite. Im Popup selbst startet die App nicht, MSAL im Hauptfenster liest die Antwort aus seiner URL. Kennt MSAL das Konto nicht mehr (oder nur ohne die Claims des ID-Tokens), obwohl die App als angemeldet gilt, startet auch die Startseite den Login neu, statt „kein Kürzel“ zu melden.
-- Profilbilder und Vorschauen lädt der Webclient mit Token als Blob und zeigt sie über eine Blob-URL. Ein `src` oder `iframe` direkt auf die API scheitert an der Edge, weil es kein Token mitschickt (#65, #67).
+- Jeder API-Aufruf holt vorher ein Token (`OIDCService.getToken`) und wartet dafür, bis die Rückkehr vom Login verarbeitet ist. Scheitert das aus einem anderen Grund als einer fehlenden Anmeldung, scheitert nur der Aufruf ([Regel](../../AGENTS.md#webclient), #311).
+- Verlangt MSAL eine Anmeldung (`InteractionRequiredAuthError`, kein Konto), wartet der Aufruf auf sie, ohne dass die Seite verlassen wird (#323, Ablauf unten): still über `ssoSilent`, wenn Microsoft noch eine Sitzung hat, sonst öffnet der `SessionExpiredDialog` auf Knopfdruck das Popup von Microsoft. Alle Aufrufe, die in der Zeit kommen, warten mit und laufen nach der Anmeldung weiter; ungespeicherte Änderungen bleiben erhalten. Bei *Abbrechen* oder geschlossenem Popup scheitern sie mit einer Meldung für alle (`LoginNotCompletedError`, `PowerApiError.silent`). Blockiert der Browser das Popup, bleibt der Redirect, nach der Frage nach ungespeicherten Änderungen; danach geht es auf derselben Seite weiter, nicht auf der Startseite (`AsyncLogInUser` führt nur von der Anmeldeseite zur Startseite). Im Popup selbst startet die App nicht (`MSALInstance.isLoginPopup`), MSAL im Hauptfenster liest die Antwort aus seiner URL. Kennt MSAL das Konto nicht mehr (oder nur ohne die Claims des ID-Tokens), obwohl die App als angemeldet gilt, startet auch die Startseite den Login neu, statt „kein Kürzel“ zu melden.
 
 Neue Anmeldung während der Arbeit (#323):
 

@@ -299,7 +299,7 @@ Neue Entscheidungen bekommen die nächste Nummer. Eine abgelöste Entscheidung b
   - Jeder Service meldet und bereinigt die Datenleichen seiner eigenen Daten (`/admin/housekeeping`). Andere Services fragt er nur nach Daten.
   - Kann er sie nicht fragen, meldet er einen Fehler statt Treffern.
   - Bereinigen wirkt nur auf das, was beim Ausführen noch zutrifft, und loggt es.
-  - Regel: Neue Verweise über Service-Grenzen oder neue nicht transaktionale Löschvorgänge bringen eine Prüfung mit.
+  - Wann eine neue Prüfung dazukommt, regelt [`AGENTS.md`](../../AGENTS.md#architecture) (*Housekeeping*).
   - Das Housekeeping pflegt das ganze System (#288). Neben den Datenleichen hat es die Rubrik *Unbenutzt* für gültige Einträge, die niemand mehr nutzt: Profil-Elemente je Typ (Profile Service) und eigene Skills in der Kategorie *Other* (Skill Service, der die Nutzung beim Profile Service liest). Löschen ist dort eine Pflegeentscheidung, keine Reparatur. Die Rubrik *Alt* (#289) bietet alte Exportdokumente und Profilauszüge an; das jüngste Dokument und der zuletzt benutzte Profilauszug je Berater bleiben, Berater werden nicht gefragt.
 - **Konsequenzen:**
   - Die Verantwortung bleibt beim Besitzer der Daten.

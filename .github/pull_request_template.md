@@ -12,7 +12,7 @@ Closes #
 
 <!-- Muss nach dem Deployment etwas manuell passieren? Neue Umgebungsvariablen, SQL-Skript für
      das Datenbankschema, Redis-Daten, Änderungen an den Pfadregeln im Edge-Service o. ä.
-     Falls nein: Abschnitt löschen. Keine Hosts, URLs, IDs oder Secrets der Umgebung nennen. -->
+     Falls nein: Abschnitt löschen. Keine Betriebsdetails (AGENTS.md › GitHub workflow). -->
 
 ---
 

@@ -165,11 +165,12 @@ erDiagram
     }
 ```
 
-Besonderheiten (Details in [`AGENTS.md`](../../AGENTS.md)):
+Besonderheiten (Regeln in [`AGENTS.md`](../../AGENTS.md#architecture)):
 - `ProfileEntry` ist mit `JOINED` vererbt. Altdaten enthalten Zeilen in `profile_entry` ohne Zeile eines Eintragstyps (#236), deshalb werden Einträge je Typ geladen.
 - Die Skills eines Projekts sind dieselben Zeilen wie die Skills des Profils (`ProfileEntryService.handleProjectSkill`).
 - Ein aus einer Collection entferntes Element bleibt als Zeile mit `profile_id` NULL stehen. Projekte löscht `deleteProject` seit #243 wirklich.
-- Profil-Elemente (`NameEntity`) sind gemeinsame Einträge aller Profile. Umbenannte und zusammengeführte Elemente behalten ihre früheren Namen (#227, #230); Admins legen weitere als Aliase an (#270) und machen einen Alias zum Namen, der alte Name wird dann Alias (#331, wie bei Skills im Skill-Baum). Alle Benutzer lesen sie über `GET /suggestions/aliases` für die Vorschläge.
+- Die Profilprüfung (`ProfileCheckService`, #139; Schwellen unter `profile-check` in der `application.yml`) meldet, was fehlt, unvollständig ist (Projekte; eine Ausbildung ohne Abschluss, #281) oder veraltet. Eine Projektbeschreibung gilt unter 300 Zeichen als kurz, bei Projekten jeden Alters, weil Kunden manchmal alle sehen wollen (#305). Der Webclient zeigt sie gleich nach der Begrüßung der Übersicht, im Dialog zum Generieren und auf den Kacheln der Berater.
+- Profil-Elemente (`NameEntity`) sind gemeinsame Einträge aller Profile, mit früheren Namen und Aliasen ([8.5](08-querschnittliche-konzepte.md#85-namen-und-stammdaten)).
 
 ### 5.2.3 pwr-skill-service
 
@@ -280,7 +281,7 @@ flowchart TB
   - Besitzer und Name, Sprache der Übersetzung (`localization`).
 - **`ReportTemplate`** (`@RedisHash("reportTemplate")`): Name, Beschreibung und `fileId`. Die Datei liegt im Report Service.
 - **Speichern und Lesen:** Jede Änderung speichert über den Aspekt `@ViewProfileAutoSave`. Beim Lesen repariert `ViewProfileRestoreAspect` ältere Daten, z. B. Standardwerte neuer Felder (#151).
-- ***Aktualisieren*:** Übernimmt Änderungen des Profils in einen Profilauszug und behält dessen Einstellungen. Umbenannte Elemente findet es über die früheren Namen und den Skill-Baum (#230).
+- ***Aktualisieren*:** [6.3](06-laufzeitsicht.md#63-profilauszug-anlegen).
 
 ### 5.2.5 pwr-report-service
 
@@ -316,8 +317,8 @@ flowchart LR
 - **`ReportData`** (Tabelle `report_data`):
   - das fertige Dokument, Status `RUNNING`, `DONE` oder `ERROR`;
   - wer exportiert hat (aus den Headern, #214), welche Vorlage verwendet wurde und die Beschreibung des Profilauszugs.
-- **`DBFile`** (Tabelle `designfiles`): die BIRT-Designs. Auf sie verweist die `fileId` einer Vorlage im View-Profile Service.
-- **Schrift:** Die Hausschrift kommt aus `/fonts` (`export.font-directory`); ohne sie nimmt BIRT Noto Sans aus dem Image (`PdfFonts`).
+- **`DBFile`** (Tabelle `designfiles`): die BIRT-Designs. Auf sie verweist die `fileId` einer Vorlage im View-Profile Service; Export und Vorschau lesen die Datei direkt aus der Datenbank.
+- **Schrift:** `PdfFonts` bettet die Hausschrift ein oder setzt Ersatz ein ([ADR-12](09-architekturentscheidungen.md#adr-12-lizenzierte-schrift-nie-im-repository-oder-image)); woher sie in der Produktion kommt: [7.1](07-verteilungssicht.md#71-produktionsumgebung).
 
 ### 5.2.6 pwr-statistics-service
 
@@ -376,8 +377,8 @@ flowchart TB
 | Profil eines Beraters | `/app/:initials/home`, `…/profile`, `…/profile/projects/:projectId`, `…/profile/skills`, `…/views`, `…/view/:id`, `…/reports`, `…/search`, `…/statistics/*` |
 | Admin | `/admin/home/consultants`, `…/templates`, `…/statistics/skills`, `…/info/skilltree`, `…/info/names`, `…/info/skills`, `…/housekeeping` |
 
-- **Laufzeitkonfiguration:** `config.js` mit Platzhaltern, die `configure_api.sh` beim Start des nginx-Containers ersetzt.
-- **Lokal:** `start:local` leitet über `src/setupProxy.js` direkt auf die Ports der Services und überspringt die Anmeldung.
+- **Laufzeitkonfiguration:** `config.js` mit Platzhaltern, die `configure_api.sh` beim Start des nginx-Containers aus Umgebungsvariablen ersetzt ([ADR-23](09-architekturentscheidungen.md#adr-23-webclient-mit-laufzeitkonfiguration-und-gehashten-dateien)).
+- **Lokal:** `start:local` setzt `REACT_APP_LOCAL_DEV=true`; dann liefert der Dev-Server `config.local.js`, leitet `/api/<service>` über `src/setupProxy.js` direkt auf die Ports der Services und überspringt die Anmeldung bei Entra ID (`CONFIG.LOCAL_DEV`).
 
 ## 5.3 Abhängigkeiten zwischen den Services
 

@@ -58,7 +58,7 @@ flowchart TB
 | **Redis-Backup** | täglicher Dump des Redis mit den Profilauszügen und Vorlagen-Metadaten (`redis-cli --rdb`), 30 Stände (#251) | Eine halbe Stunde nach dem DB-Backup, ebenfalls auf demselben Host. Die Wiederherstellung beschreibt `REDIS-BACKUP.md` im Deploy-Repository. Mit #52 kann es entfallen. |
 | **Watchtower** | Spielt neue Images ein | Prüft alle 10 Minuten (`--interval 600`). |
 
-Alle Container liegen im Standardnetz des Compose-Projekts. Die Services erreichen sich über ihre Compose-Namen (`http://pwr-<name>-service:<port>`); das sind die Standardwerte der Properties `pwr-<name>-service-url`. Von außen ist nur der Ingress erreichbar. Die Backend-Services prüfen selbst keine Anmeldung ([Kapitel 8.1](08-querschnittliche-konzepte.md#81-sicherheit)).
+Alle Container liegen im Standardnetz des Compose-Projekts. Die Services erreichen sich über ihre Compose-Namen ([8.4](08-querschnittliche-konzepte.md#84-kommunikation-zwischen-services)). Von außen ist nur der Ingress erreichbar. Die Backend-Services prüfen selbst keine Anmeldung ([Kapitel 8.1](08-querschnittliche-konzepte.md#81-sicherheit)).
 
 ## 7.2 Vom Merge in die Produktion
 
@@ -72,8 +72,7 @@ flowchart LR
 ```
 
 - **Ein Workflow je Ordner** (`.github/workflows/<ordner>.yml`) mit Pfadfilter. Ein PR zeigt nur die Prüfungen der Ordner, die er ändert ([ADR-18](09-architekturentscheidungen.md#adr-18-ci-je-ordner-mit-pfadfiltern-und-getrenntem-publish)).
-- **`check`** auf PRs: Lesetoken, Cache erlaubt, `mvn -B package` bzw. `npm ci && npm run build`, Image bauen ohne Push.
-- **`publish`** auf `main`: derselbe Build ohne Cache. Der Webclient schreibt zusätzlich `build_info.json`. Danach Push nach GHCR.
+- **`check`** auf PRs und **`publish`** auf `main`: was jeder Job darf und baut, steht in [`AGENTS.md` › CI](../../AGENTS.md#ci). Beim `publish` schreibt der Webclient zusätzlich `build_info.json`; das Image geht mit `:main` und `:sha-<commit>` nach GHCR.
 - **Merge ist Deployment:** Was vorher in der Umgebung passieren muss, steht im PR unter *Operations / Deployment Notes* und wird vor dem Merge erledigt: SQL-Skript, neue Umgebungsvariable, Redis-Migration.
 - **Stand prüfen:** Jeder Service zeigt seinen Commit unter `/actuator/info`, der Webclient in `build_info.json`. Das Info-Symbol der App zeigt alle zusammen (#71).
 - **Austausch:** Watchtower erzeugt jeden geänderten Container neu, ohne Rolling Update. Während ein Container neu startet, antwortet er kurz nicht. Beim Webclient sind das etwa 30 bis 60 Sekunden mit 502.
@@ -104,9 +103,8 @@ flowchart LR
     V9008 & T9007 --> RE
 ```
 
-- **Ohne Edge:** Der Webclient spricht die Services direkt an, und die Identitäts-Header fehlen. Lokal ist man als Admin angemeldet.
-- **Testdaten:** `./mvnw sql:execute` in Profile und Skill Service, die Vorlage über `./mvnw exec:exec` im Report Service.
-- **Ausführliche Anleitung:** [`README.md`](../../README.md).
+- **Ohne Edge und Anmeldung:** [8.1](08-querschnittliche-konzepte.md#81-sicherheit).
+- **Start, Testdaten und Vorlage:** [`README.md` › Run locally](../../README.md#run-locally).
 
 ## 7.4 Zuordnung der Bausteine
 
